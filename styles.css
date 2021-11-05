@@ -1,0 +1,11 @@
+body {
+    display:flex;
+    justify-content: center;
+    background-color: blue;
+}
+
+#gameGrid {
+    display: flex;
+    flex-wrap: wrap;
+    background-color: black;
+}
