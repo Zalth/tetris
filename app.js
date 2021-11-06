@@ -16,8 +16,9 @@ const game = {
 
 // Class for each individual tetroid shape and rotational orientation
 class Tetroid {
-    constructor(templateId, orientation0, orientation1, orientation2, orientation3) {
+    constructor(templateId, color, orientation0, orientation1, orientation2, orientation3) {
         this.id = templateId;
+        this.color = color
         this.vers0 = orientation0;
         this.vers1 = orientation1;
         this.vers2 = orientation2;
@@ -32,7 +33,7 @@ class Tetroid {
         this.curPosTiles = this.vers0.slice();
         this.curPosTiles.forEach((tilePos, index) => {
             this.curPosTiles[index] = tilePos + 3;
-            game.tileArr[this.curPosTiles[index]].style.backgroundColor = 'red';
+            game.tileArr[this.curPosTiles[index]].style.backgroundColor = this.color;
         })
     }
     
@@ -44,7 +45,7 @@ class Tetroid {
         })
 
         this.curPosTiles.forEach((tilePos) => {
-            game.tileArr[tilePos].style.backgroundColor = 'red';
+            game.tileArr[tilePos].style.backgroundColor = this.color;
         })
     }
 
@@ -80,32 +81,32 @@ class Tetroid {
 
         this.curPosTiles.forEach((tilePos, index) => {
             this.curPosTiles[index] = tilePos + shiftBy;
-            game.tileArr[this.curPosTiles[index]].style.backgroundColor = 'red';
+            game.tileArr[this.curPosTiles[index]].style.backgroundColor = this.color;
         })
     }
 }
 
 // Define all playable tetroid shapes and rotational orientations
 // Add to the shapes array
-const lineShape = new Tetroid(0, [2, 12, 22, 32], [10, 11, 12, 13], [2, 12, 22, 32], [10, 11, 12, 13]);
+const lineShape = new Tetroid(0, 'blue', [2, 12, 22, 32], [10, 11, 12, 13], [2, 12, 22, 32], [10, 11, 12, 13]);
 game.shapeTemplates.push(lineShape);
 
-const lShape = new Tetroid(1, [1, 2, 12, 22], [11, 12, 13, 21], [1, 11, 21, 22], [3, 11, 12, 13]);
+const lShape = new Tetroid(1, 'green', [1, 2, 12, 22], [11, 12, 13, 21], [1, 11, 21, 22], [3, 11, 12, 13]);
 game.shapeTemplates.push(lShape);
 
-const revLShape = new Tetroid(2, [2, 12, 21, 22], [11, 12, 13, 1], [2, 12, 22, 3], [11, 12, 13, 23])
+const revLShape = new Tetroid(2, 'yellow', [2, 12, 21, 22], [11, 12, 13, 1], [2, 12, 22, 3], [11, 12, 13, 23])
 game.shapeTemplates.push(revLShape);
 
-const tShape = new Tetroid(3, [2, 12, 22, 13], [11, 12, 13, 22], [2, 12, 22, 11], [11, 12, 13, 2]);
+const tShape = new Tetroid(3, 'orange', [2, 12, 22, 13], [11, 12, 13, 22], [2, 12, 22, 11], [11, 12, 13, 2]);
 game.shapeTemplates.push(tShape);
 
-const squareShape = new Tetroid(4, [1, 2, 11, 12], [1, 2, 11, 12], [1, 2, 11, 12], [1, 2, 11, 12]);
+const squareShape = new Tetroid(4, 'greenyellow', [1, 2, 11, 12], [1, 2, 11, 12], [1, 2, 11, 12], [1, 2, 11, 12]);
 game.shapeTemplates.push(squareShape);
 
-const sShape = new Tetroid(5, [2, 3, 11, 12], [1, 11, 12, 22], [2, 3, 11, 12], [1, 11, 12, 22]);
+const sShape = new Tetroid(5, 'violet', [2, 3, 11, 12], [1, 11, 12, 22], [2, 3, 11, 12], [1, 11, 12, 22]);
 game.shapeTemplates.push(sShape);
 
-const revSShape = new Tetroid(6, [1, 2, 12, 13], [2, 11, 12, 21], [1, 2, 12, 13], [2, 11, 12, 21]);
+const revSShape = new Tetroid(6, 'darksalmon', [1, 2, 12, 13], [2, 11, 12, 21], [1, 2, 12, 13], [2, 11, 12, 21]);
 game.shapeTemplates.push(revSShape);
 
 // Randomly selects next tetroid to appear
