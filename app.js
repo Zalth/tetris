@@ -1,17 +1,17 @@
 // Set tile size and dimensions of the game area
 const game = {
-    tileDimension: 60,  //Tiles are 60 px wide
-    tilesWide: 10,      //10 tiles per row
-    tilesHigh: 15,      //15 rows
-    gridWidth: 0,       //Will update on setupGame(game)
-    gridHeight: 0,      //Will update on setupGame(game)
-    gridSelector: "",   //Will update on setupGame(game)
-    gameWidth: "",         //Will update on setupGame(game)
-    gameHeight: "",        //Will update on setupGame(game)
-    tileArr: [],           //Will update on setupGame(game)
-    shapeTemplates: [],          //Will store all tetroids and all orientations
-    curTemplateId: "",
-    fallInterval: 1000
+    tileDimension: 40,      //Tiles are 60 px wide
+    tilesWide: 10,          //10 tiles per row
+    tilesHigh: 15,          //15 rows
+    gridWidth: 0,           //Will update on setupGame(game)
+    gridHeight: 0,          //Will update on setupGame(game)
+    gridSelector: "",       //Will update on setupGame(game)
+    gameWidth: "",          //Will update on setupGame(game)
+    gameHeight: "",         //Will update on setupGame(game)
+    tileArr: [],            //Will update on setupGame(game)
+    shapeTemplates: [],     //Will store all tetroids and all orientations
+    curTemplateId: "",      //The tetroid currently falling   
+    fallInterval: 1000      //How long it takes to drop tetroid 1 square in millisec
 }
 
 // Class for each individual tetroid shape and rotational orientation
@@ -25,6 +25,7 @@ class Tetroid {
         this.vers3 = orientation3;
         this.curPosTiles = this.vers0.slice();
         this.curOrientation = 0;
+        this.nextRotationTiles = []
     }
     
     // Creates each new tetroid
@@ -68,6 +69,20 @@ class Tetroid {
         }
     }
 
+    // Creates array of next rotation
+    nextRotation() {
+        let currentVers = this.curOrientation
+        let shiftBy = this.curPosTiles[0] - this.getVersion(currentVers)[0];
+        currentVers += 1;
+        currentVers = currentVers % 4;
+        let currentVersTiles = this.getVersion(currentVers);
+
+        currentVersTiles.forEach((tilePos, index) => {
+            this.nextRotationTiles[index] = tilePos + shiftBy;
+        })
+        return this.nextRotationTiles.slice()
+    }
+
     // Rotates tetroid around a fixed point
     rotateTetroid() {
         this.curPosTiles.forEach((tilePos) => {
@@ -89,60 +104,19 @@ class Tetroid {
 // Define all playable tetroid shapes and rotational orientations
 // Add to the shapes array
 const lineShape = new Tetroid(0, 'blue', [2, 12, 22, 32], [10, 11, 12, 13], [2, 12, 22, 32], [10, 11, 12, 13]);
-game.shapeTemplates.push(lineShape);
-
 const lShape = new Tetroid(1, 'green', [1, 2, 12, 22], [11, 12, 13, 21], [1, 11, 21, 22], [3, 11, 12, 13]);
-game.shapeTemplates.push(lShape);
-
 const revLShape = new Tetroid(2, 'yellow', [2, 12, 21, 22], [11, 12, 13, 1], [2, 12, 22, 3], [11, 12, 13, 23])
-game.shapeTemplates.push(revLShape);
-
 const tShape = new Tetroid(3, 'orange', [2, 12, 22, 13], [11, 12, 13, 22], [2, 12, 22, 11], [11, 12, 13, 2]);
-game.shapeTemplates.push(tShape);
-
 const squareShape = new Tetroid(4, 'greenyellow', [1, 2, 11, 12], [1, 2, 11, 12], [1, 2, 11, 12], [1, 2, 11, 12]);
-game.shapeTemplates.push(squareShape);
-
 const sShape = new Tetroid(5, 'violet', [2, 3, 11, 12], [1, 11, 12, 22], [2, 3, 11, 12], [1, 11, 12, 22]);
-game.shapeTemplates.push(sShape);
-
 const revSShape = new Tetroid(6, 'darksalmon', [1, 2, 12, 13], [2, 11, 12, 21], [1, 2, 12, 13], [2, 11, 12, 21]);
-game.shapeTemplates.push(revSShape);
+game.shapeTemplates = [lineShape, lShape, revLShape, tShape, squareShape, sShape, revSShape];
 
 // Randomly selects next tetroid to appear
 function generateShape() {
     game.curTemplateId = Math.floor(Math.random() * game.shapeTemplates.length);
 
-    switch(game.curTemplateId) {
-        case 0:
-            game.shapeTemplates[0].initialPos();
-            game.curTemplateId = 0;
-            break;
-        case 1:
-            game.shapeTemplates[1].initialPos();
-            game.curTemplateId = 1;
-            break;
-        case 2:
-            game.shapeTemplates[2].initialPos();
-            game.curTemplateId = 2;
-            break;
-        case 3:
-            game.shapeTemplates[3].initialPos();
-            game.curTemplateId = 3;
-            break;
-        case 4:
-            game.shapeTemplates[4].initialPos();
-            game.curTemplateId = 4;
-            break;
-        case 5:
-            game.shapeTemplates[5].initialPos();
-            game.curTemplateId = 5;
-            break;
-        case 6:
-            game.shapeTemplates[6].initialPos();
-            game.curTemplateId = 6;
-            break;
-    }
+    game.shapeTemplates[game.curTemplateId].initialPos();
 }
 
 // Must call inorder to instantiate the game board
@@ -191,7 +165,7 @@ function setupGame(game) {
             generateShape();
         }
     }
-    setInterval(playGame, game.fallInterval);
+    //setInterval(playGame, game.fallInterval);
 }
 
 // Called to set up the game
@@ -199,12 +173,43 @@ setupGame(game);
 
 document.addEventListener('keydown', (event) => {
     let canShift = true;
+    let isLeftSide = false;
+    let isRightSide = false;
+    let isOffBottom = false;
+    let isNextTileOccupied = false;
     let curTetroid = game.shapeTemplates[game.curTemplateId];
     switch (event.code) {
         // Rotate tetroid if spacebar clicked
         case "Space":
-            game.shapeTemplates[game.curTemplateId].rotateTetroid();
-            break;
+            let nextRot = curTetroid.nextRotation();
+            console.log(nextRot)
+
+            nextRot.forEach((tilePos) => {
+                if ((tilePos) % game.tilesWide == 9) {
+                    isRightSide = true;
+                }
+                else if ((tilePos) % game.tilesWide == 0) {
+                    isLeftSide = true;
+                }
+                
+                if ((tilePos) >= (game.tilesWide * game.tilesHigh)) {
+                    isOffBottom = true;
+                }
+
+                if (isOffBottom == false) {
+                    if (game.tileArr[tilePos].style.backgroundColor == 'gray') {
+                        isNextTileOccupied = true;
+                    }
+                }
+
+                if ((isLeftSide && isRightSide) || isNextTileOccupied || isOffBottom) {
+                    canShift = false;
+                }
+            })
+            if (canShift) {
+                game.shapeTemplates[game.curTemplateId].rotateTetroid();
+            }
+            break;    
         
         // Press left arrow to move tetroid left
         case "ArrowLeft":

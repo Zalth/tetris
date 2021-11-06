@@ -5,8 +5,10 @@ body {
 }
 
 #gameGrid {
-    display: flex;
-    flex-wrap: wrap;
     background-color: black;
     color: white;
+    display: inline-grid;
+    grid-template-columns: repeat(10, 1fr);
+    grid-template-rows: repeat(15, 1fr);
+    margin: 40px;
 }
