@@ -173,22 +173,48 @@ function generateShape() {
 generateShape()
 
 document.addEventListener('keydown', (event) => {
+    let canShift = true;
+    let curTetroid = game.shapeTemplates[game.curTemplateId];
     switch (event.code) {
         // Rotate tetroid if spacebar clicked
         case "Space":
             game.shapeTemplates[game.curTemplateId].rotateTetroid();
             break;
+        
         // Press left arrow to move tetroid left
         case "ArrowLeft":
-            game.shapeTemplates[game.curTemplateId].updatePos(-1);
+            curTetroid.curPosTiles.forEach((tilePos) => {
+                if ((tilePos - 1) % game.tilesWide == game.tilesWide - 1) {
+                    canShift = false;
+                }
+            })
+            if (canShift) {
+                game.shapeTemplates[game.curTemplateId].updatePos(-1);
+            }
             break;
+        
         // Press right arrow to move tetroid right
         case "ArrowRight":
-            game.shapeTemplates[game.curTemplateId].updatePos(1);
+            curTetroid.curPosTiles.forEach((tilePos) => {
+                if ((tilePos + 1) % game.tilesWide == 0) {
+                    canShift = false;
+                }
+            })
+            if (canShift) {
+                game.shapeTemplates[game.curTemplateId].updatePos(1);
+            }
             break;
+        
         // Press down arrow to drop tetroid
         case "ArrowDown":
-            game.shapeTemplates[game.curTemplateId].updatePos(10);
+            curTetroid.curPosTiles.forEach((tilePos) => {
+                if ((tilePos + 10) > game.tilesWide * game.tilesHigh - 1) {
+                    canShift = false;
+                }
+            })
+            if (canShift) {
+                game.shapeTemplates[game.curTemplateId].updatePos(10);
+            }
             break;
     }
 }) 
