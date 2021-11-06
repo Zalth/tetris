@@ -143,9 +143,9 @@ function setupGame(game) {
     }
     generateShape()
 
-    /* function endGame() {
-        game.fallInterval = 0;
-    } */
+    function endGame() {
+        clearInterval(gravity);
+    }
 
     function playGame() {
         let canShift = true;
@@ -162,10 +162,20 @@ function setupGame(game) {
             curTetroid.curPosTiles.forEach((tilePos) => {
                 game.tileArr[tilePos].style.backgroundColor = 'gray';
             })
+            
+            let tempTetroidTiles = curTetroid.curPosTiles.slice()
+            
             generateShape();
+            
+            // Check if the new tile overlaps the previous tile upon creation
+            tempTetroidTiles.forEach((tilePos, index) => {
+                if (tilePos == game.shapeTemplates[game.curTemplateId].curPosTiles[index]) {
+                    return endGame();
+                }
+            })
         }
     }
-    //setInterval(playGame, game.fallInterval);
+    let gravity = setInterval(playGame, game.fallInterval);
 }
 
 // Called to set up the game
@@ -182,7 +192,6 @@ document.addEventListener('keydown', (event) => {
         // Rotate tetroid if spacebar clicked
         case "Space":
             let nextRot = curTetroid.nextRotation();
-            console.log(nextRot)
 
             nextRot.forEach((tilePos) => {
                 if ((tilePos) % game.tilesWide == 9) {
