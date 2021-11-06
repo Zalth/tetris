@@ -10,35 +10,9 @@ const game = {
     gameHeight: "",        //Will update on setupGame(game)
     tileArr: [],           //Will update on setupGame(game)
     shapeTemplates: [],          //Will store all tetroids and all orientations
-    curTemplateId: ""
+    curTemplateId: "",
+    fallInterval: 1000
 }
-
-// Must call inorder to instantiate the game board
-function setupGame(game) {
-    // Calculates and sets the width and height of playable area in px, including tile borders using the game object
-    game.gridSelector = document.querySelector('#gameGrid');
-    game.gridWidth = game.tilesWide * game.tileDimension + 2 * game.tilesWide;
-    game.gridHeight = game.tilesHigh * game.tileDimension + 2 * game.tilesHigh;
-    game.gameWidth = game.gridWidth + "px";
-    game.gridSelector.style.width = game.gameWidth;
-    game.gameHeight = game.gridHeight + "px";
-    game.gridSelector.style.height = game.gameHeight;
-
-    // Instantiates all game tiles with borders and adds to the tileArr
-    for(let i = 0; i < game.tilesWide * game.tilesHigh; i++) {
-        let gridTile = document.createElement('div');
-        gridTile.id = i;
-        gridTile.style.width = game.tileDimension + "px";
-        gridTile.style.height = game.tileDimension + "px";
-        gridTile.style.border = "1px solid white";
-        gridTile.textContent = i;
-        game.gridSelector.append(gridTile);
-        game.tileArr.push(gridTile);
-    }
-}
-
-// Called to set up the game
-setupGame(game);
 
 // Class for each individual tetroid shape and rotational orientation
 class Tetroid {
@@ -170,7 +144,57 @@ function generateShape() {
     }
 }
 
-generateShape()
+// Must call inorder to instantiate the game board
+function setupGame(game) {
+    // Calculates and sets the width and height of playable area in px, including tile borders using the game object
+    game.gridSelector = document.querySelector('#gameGrid');
+    game.gridWidth = game.tilesWide * game.tileDimension + 2 * game.tilesWide;
+    game.gridHeight = game.tilesHigh * game.tileDimension + 2 * game.tilesHigh;
+    game.gameWidth = game.gridWidth + "px";
+    game.gridSelector.style.width = game.gameWidth;
+    game.gameHeight = game.gridHeight + "px";
+    game.gridSelector.style.height = game.gameHeight;
+
+    // Instantiates all game tiles with borders and adds to the tileArr
+    for(let i = 0; i < game.tilesWide * game.tilesHigh; i++) {
+        let gridTile = document.createElement('div');
+        gridTile.id = i;
+        gridTile.style.width = game.tileDimension + "px";
+        gridTile.style.height = game.tileDimension + "px";
+        gridTile.style.border = "1px solid white";
+        gridTile.textContent = i;
+        game.gridSelector.append(gridTile);
+        game.tileArr.push(gridTile);
+    }
+    generateShape()
+
+    /* function endGame() {
+        game.fallInterval = 0;
+    } */
+
+    function playGame() {
+        let canShift = true;
+        let curTetroid = game.shapeTemplates[game.curTemplateId];
+        curTetroid.curPosTiles.forEach((tilePos) => {
+            if ((tilePos + 10) > game.tilesWide * game.tilesHigh - 1 || game.tileArr[tilePos + 10].style.backgroundColor == 'gray') {
+                canShift = false;
+            }
+        })
+        if (canShift) {
+            game.shapeTemplates[game.curTemplateId].updatePos(10);
+        }
+        else {
+            curTetroid.curPosTiles.forEach((tilePos) => {
+                game.tileArr[tilePos].style.backgroundColor = 'gray';
+            })
+            generateShape();
+        }
+    }
+    setInterval(playGame, game.fallInterval);
+}
+
+// Called to set up the game
+setupGame(game);
 
 document.addEventListener('keydown', (event) => {
     let canShift = true;
@@ -184,7 +208,7 @@ document.addEventListener('keydown', (event) => {
         // Press left arrow to move tetroid left
         case "ArrowLeft":
             curTetroid.curPosTiles.forEach((tilePos) => {
-                if ((tilePos - 1) % game.tilesWide == game.tilesWide - 1) {
+                if ((tilePos - 1) % game.tilesWide == game.tilesWide - 1 || game.tileArr[tilePos -1].style.backgroundColor == 'gray') {
                     canShift = false;
                 }
             })
@@ -196,7 +220,7 @@ document.addEventListener('keydown', (event) => {
         // Press right arrow to move tetroid right
         case "ArrowRight":
             curTetroid.curPosTiles.forEach((tilePos) => {
-                if ((tilePos + 1) % game.tilesWide == 0) {
+                if ((tilePos + 1) % game.tilesWide == 0 || game.tileArr[tilePos + 1].style.backgroundColor == 'gray') {
                     canShift = false;
                 }
             })
@@ -208,15 +232,22 @@ document.addEventListener('keydown', (event) => {
         // Press down arrow to drop tetroid
         case "ArrowDown":
             curTetroid.curPosTiles.forEach((tilePos) => {
-                if ((tilePos + 10) > game.tilesWide * game.tilesHigh - 1) {
+                if ((tilePos + 10) > game.tilesWide * game.tilesHigh - 1 || game.tileArr[tilePos + 10].style.backgroundColor == 'gray') {
                     canShift = false;
                 }
             })
             if (canShift) {
                 game.shapeTemplates[game.curTemplateId].updatePos(10);
             }
+            else {
+                curTetroid.curPosTiles.forEach((tilePos) => {
+                    game.tileArr[tilePos].style.backgroundColor = 'gray'
+                })
+            }
             break;
     }
 }) 
+
+
 
 //game.shapeTemplates[game.curTemplateId = 3].initialPos()
