@@ -11,18 +11,29 @@ const game = {
     tileArr: [],            //Will update on setupGame(game)
     shapeTemplates: [],     //Will store all tetroids and all orientations
     curTemplateId: "",      //The tetroid currently falling   
-    fallInterval: 200,     //How long it takes to drop tetroid 1 square in millisec
+    fallInterval: 500,     //How long it takes to drop tetroid 1 square in millisec
     filledSqInRow: [],       //Keeps track of how many squares are filled in each row
     gravity: "",
     newShape: true,
-    shapesGenerated: 0
+    shapesGenerated: 0,
+    currentScore: 0,
+    highestScore: 0,
+    lineStats: {
+        single: 0,
+        double: 0,
+        triple: 0,
+        tetris: 0,
+        total: 0
+    },
+    level: 1
+
 }
 
 // Class for each individual tetroid shape and rotational orientation
 class Tetroid {
     constructor(templateId, color, orientation0, orientation1, orientation2, orientation3) {
         this.id = templateId;
-        this.color = color
+        this.color = color;
         this.vers0 = orientation0;
         this.vers1 = orientation1;
         this.vers2 = orientation2;
@@ -35,7 +46,7 @@ class Tetroid {
     
     // Checks next position tiles before spawning or moving tetroid
     canMoveTetroid(shiftBy) {
-        let canShift = true
+        let canShift = true;
         this.nextPosTiles = this.curPosTiles.slice();
         this.curPosTiles.forEach((tilePos, index) => {
             let shiftedTilePos = tilePos + shiftBy;
@@ -44,18 +55,18 @@ class Tetroid {
                     this.nextPosTiles[index] = shiftedTilePos;
                 }
                 else {
-                    this.nextPosTiles = this.curPosTiles.slice()
+                    this.nextPosTiles = this.curPosTiles.slice();
                     canShift = false;
                 }
             }
             else {
-                this.nextPosTiles = this.curPosTiles.slice()
+                this.nextPosTiles = this.curPosTiles.slice();
                 canShift = false;
             }   
         })
         if (canShift) {
             this.curPosTiles.forEach((tilePos, index) => {
-                game.tileArr[this.curPosTiles[index]].style.backgroundColor = 'black'
+                game.tileArr[this.curPosTiles[index]].style.backgroundColor = 'black';
             })
         }
         return canShift;
@@ -65,7 +76,7 @@ class Tetroid {
     initialPos() {
         this.curOrientation = 0;
         let shiftBy = 3;
-        this.curPosTiles = this.vers0.slice() 
+        this.curPosTiles = this.vers0.slice(); 
         if(this.canMoveTetroid(shiftBy)) {
             this.curPosTiles = this.vers0.slice();
             this.curPosTiles.forEach((tilePos, index) => {
@@ -80,8 +91,11 @@ class Tetroid {
                 this.curPosTiles[index] = tilePos + shiftBy;
                 game.tileArr[tilePos + shiftBy].style.backgroundColor = this.color;
             })
+            if (game.currentScore > game.highestScore) {
+                game.highestScore = game.currentScore;
+            }
             clearInterval(game.gravity);
-            console.log("Game Over")
+            console.log("Game Over");
         }
     }
     
@@ -114,7 +128,7 @@ class Tetroid {
 
     // Creates array of next rotation
     nextRotation() {
-        let currentVers = this.curOrientation
+        let currentVers = this.curOrientation;
         let shiftBy = this.curPosTiles[0] - this.getVersion(currentVers)[0];
         currentVers += 1;
         currentVers = currentVers % 4;
@@ -123,7 +137,7 @@ class Tetroid {
         currentVersTiles.forEach((tilePos, index) => {
             this.nextRotationTiles[index] = tilePos + shiftBy;
         })
-        return this.nextRotationTiles.slice()
+        return this.nextRotationTiles.slice();
     }
 
     // Rotates tetroid around a fixed point
@@ -192,31 +206,82 @@ function setupGame(game) {
     function playGame() {
         game.shapesGenerated += 1;
         if (game.shapesGenerated == 1) {
-            generateShape()
+            generateShape();
             let curTetroid = game.shapeTemplates[game.curTemplateId];
             curTetroid.updatePos();
         }
         else {
             let curTetroid = game.shapeTemplates[game.curTemplateId];
-            let canShift = curTetroid.canMoveTetroid(10)
+            let canShift = curTetroid.canMoveTetroid(10);
             if (game.newShape && game.filledSqInRow[2] == 0) {
-                curTetroid.curPosTiles = curTetroid.nextPosTiles.slice()
+                curTetroid.curPosTiles = curTetroid.nextPosTiles.slice();
                 curTetroid.updatePos();
                 game.newShape = false;
             }
             else if(canShift) {
-                curTetroid.curPosTiles = curTetroid.nextPosTiles.slice()
+                curTetroid.curPosTiles = curTetroid.nextPosTiles.slice();
                 curTetroid.updatePos();
             }
             else {
+                let rowsToClear = []
                 curTetroid.curPosTiles.forEach(tilePos => {
                     game.tileArr[tilePos].style.backgroundColor = 'gray';
+                    let rowNum = Math.floor(tilePos / game.tilesWide);
+                    game.filledSqInRow[rowNum] += 1;
+                    if (game.filledSqInRow[rowNum] >= game.tilesWide) {
+                        rowsToClear.push(rowNum);
+                    }
                 })
-                generateShape()
+                if (rowsToClear.length > 0) {
+                    clearRows(rowsToClear);
+                }
+                generateShape();
             }
         }
     }
     game.gravity = setInterval(playGame, game.fallInterval);
+
+    function clearRows(rowsToClear) {
+        let rowsToClearLen = rowsToClear.length;
+        updateScoreStats(rowsToClearLen);
+        for (let i = 0; i < rowsToClearLen; i++) {
+            let row = rowsToClear.pop();
+            moveRowsDown(row, i + 1);
+        }
+    }
+    function moveRowsDown(row, rowsShifted) {
+        console.log("sq Arr before: " + game.filledSqInRow)
+        let rowStartShift = row + rowsShifted - 1;
+        for (let i = rowStartShift; i > 0; i--) {
+            for (let j = 0; j < 10; j++) {
+                game.tileArr[10 * i + j].style.backgroundColor = game.tileArr[10 * (i - 1) + j].style.backgroundColor;
+            }
+        }
+        for (let k = game.filledSqInRow.length - 1; k > 0; k--) {
+            game.filledSqInRow[k] = game.filledSqInRow[k - 1];
+        }
+    }
+    function updateScoreStats(rowsToClearLen) {
+        game.currentScore += parseInt(100 * rowsToClearLen * (1 + (rowsToClearLen - 1) * 0.1));
+        game.lineStats.total += rowsToClearLen;
+        game.level = 1 + Math.floor(game.lineStats.total / 10);
+        game.fallInterval = 1000 * 0.9;
+        switch(rowsToClearLen) {
+            case 1:
+                game.lineStats.single += 1;
+                break;
+            case 2:
+                game.lineStats.double += 1;
+                break;
+            case 3:
+                game.lineStats.triple += 1;
+                break;
+            case 4:
+                game.lineStats.tetris += 1;
+                break;
+        }
+        
+    }
 }
 
 // Called to set up the game
