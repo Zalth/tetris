@@ -203,6 +203,27 @@ function setupGame(game) {
         game.filledSqInRow[i] = 0;
     }
 
+    // Display scores and level in score banner
+    let highScore = document.querySelector('#highScore');
+    highScore.textContent = game.highestScore;
+
+    let curScore = document.querySelector('#currentScore');
+    curScore.textContent = game.currentScore;
+
+    let level = document.querySelector('#level');
+    level.textContent = game.level;
+
+    // Create Play and Pause buttons in score banner
+    let playButton = document.querySelector('#play');
+    playButton.addEventListener('click', () => {
+        clearInterval(game.gravity);
+        game.gravity = setInterval(playGame, game.fallInterval);
+    })
+    let pauseButton = document.querySelector('#pause');
+    pauseButton.addEventListener('click', () => {
+        clearInterval(game.gravity);
+    })
+
     function playGame() {
         game.shapesGenerated += 1;
         if (game.shapesGenerated == 1) {
@@ -239,6 +260,7 @@ function setupGame(game) {
             }
         }
     }
+    
     game.gravity = setInterval(playGame, game.fallInterval);
 
     function clearRows(rowsToClear) {

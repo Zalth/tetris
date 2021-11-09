@@ -8,13 +8,23 @@
     <script src="app.js" defer></script>
     <title>Tetris</title>
 </head>
-<header>
-    <button id="play">Play</button>
-    <button id="pause">Pause</button>
-</header>
-<body>
-    <div id="gameGrid">
 
-    </div>
+<body>
+    <header class="statBanner">
+        <div>High Score: <span id="highScore"></span></div>
+        <div>Current Score: <span id="currentScore"></span></div>
+        <div>Level: <span id="level"></span></div>
+        <div>
+            <button id="play">Play</button>
+            <button id="pause">Pause</button>
+        </div>
+    </header>
+    <aside class="gameStats">
+
+    </aside>
+    <main class="gameArea">
+        <div id="gameGrid"></div>
+    </main>
+    
 </body>
 </html>

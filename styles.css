@@ -1,7 +1,33 @@
 body {
-    display:flex;
+    display:grid;
     justify-content: center;
     background-color: blue;
+    gap: 20px;
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-rows: repeat(17, 1fr);
+    grid-auto-flow: row;
+}
+
+.statBanner {
+    display: flex;
+    grid-column: 1 / 4;
+    grid-row: 1 / 3;
+    justify-content: space-between;
+    align-items: center;
+    background-color: red;
+}
+
+.gameStats {
+    display: grid;
+    grid-column: 1 / 2;
+    grid-row: 3 / 18;
+    background-color: yellow;
+}
+
+.gameArea {
+    grid-column: 2 / 4;
+    grid-row: 3 / 18;
+    background-color: orange;
 }
 
 #gameGrid {
@@ -10,5 +36,4 @@ body {
     display: inline-grid;
     grid-template-columns: repeat(10, 1fr);
     grid-template-rows: repeat(15, 1fr);
-    margin: 40px;
 }
