@@ -11,11 +11,13 @@ const game = {
     curTemplateId: "",      //The tetroid currently falling   
     fallInterval: 900,     //How long it takes to drop tetroid 1 square in millisec
     filledSqInRow: [],       //Keeps track of how many squares are filled in each row
+    scoreArr: [],
     gravity: "",
     newShape: true,
     shapesGenerated: 0,
     currentScore: 0,
     highestScore: 0,
+    totLinesCleared: 0,
     lineStats: {
         single: 0,
         double: 0,
@@ -37,24 +39,54 @@ const game = {
     pauseFlag: true
 
 }
+// Class to hold information used in calculating the score
+class Score {
+    constructor(htmlId, initValue) {
+        this.htmlId = '#' + htmlId;
+        this.initValue = initValue;
+        this.displaySelector = document.querySelector(this.htmlId);
+        this.stat = initValue;
+    }
+    update(adjustedBy) {
+        this.stat += adjustedBy;
+        this.displaySelector.textContent = this.stat;
+    }
+    reset() {
+        this.stat = this.initValue;
+        this.update(this.initValue);
+    }
+}
+
+// Instantiate all members of Score class and add to game.scoreArr
+const oneRowCleared = new Score('oneRow', 0);
+const twoRowsCleared = new Score('twoRow', 0);
+const threeRowsCleared = new Score('threeRow', 0);
+const fourRowsCleared = new Score('tetris', 0);
+const level = new Score('level', 1);
+const curScore = new Score('currentScore', 0);
+const highScore = new Score('highScore', 0);
+
+game.scoreArr = [oneRowCleared, twoRowsCleared, threeRowsCleared, fourRowsCleared, level, curScore, highScore];
+game.scoreArr.forEach(item => {item.reset()});
+
 
 // Class for each individual tetroid shape and rotational orientation
 class Tetroid {
     constructor(templateId, templateName, color, orientation0, orientation1, orientation2, orientation3, asideTemplate) {
         this.id = templateId;
+        this.name = templateName;
         this.color = color;
         this.vers0 = orientation0;
         this.vers1 = orientation1;
         this.vers2 = orientation2;
         this.vers3 = orientation3;
-        this.curPosTiles = this.vers0.slice();
-        this.curOrientation = 0;
-        this.nextPosTiles = [];
-        this.nextRotationTiles = [];
+        this.asideTemplate = asideTemplate;
         this.asideShapeSelector = ''
         this.numGenerated = 0;
-        this.asideTemplate = asideTemplate;
-        this.name = templateName;
+        this.curOrientation = 0;
+        this.curPosTiles = this.vers0.slice();
+        this.nextPosTiles = [];
+        this.nextRotationTiles = [];
     }
     
     // Checks next position tiles before spawning or moving tetroid
@@ -182,6 +214,7 @@ const squareShape = new Tetroid(4, 'squareShape', 'greenyellow', [1, 2, 11, 12],
 const sShape = new Tetroid(5, 'sShape', 'violet', [2, 3, 11, 12], [1, 11, 12, 22], [2, 3, 11, 12], [1, 11, 12, 22], [3, 4, 5, 6]);
 const revSShape = new Tetroid(6, 'revSShape', 'darksalmon', [1, 2, 12, 13], [2, 11, 12, 21], [1, 2, 12, 13], [2, 11, 12, 21], [2, 4, 5, 7]);
 const lineShape = new Tetroid(0, 'lineShape', 'blue', [0, 1, 2, 3], [2, 12, 22, 32], [0, 1, 2, 3], [2, 12, 22, 32], [0, 2, 4, 6]);
+
 game.shapeTemplates = [lShape, revLShape, tShape, squareShape, sShape, revSShape, lineShape];
 
 // Randomly selects next tetroid to appear
