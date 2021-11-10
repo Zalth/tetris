@@ -11,7 +11,7 @@ const game = {
     tileArr: [],            //Will update on setupGame(game)
     shapeTemplates: [],     //Will store all tetroids and all orientations
     curTemplateId: "",      //The tetroid currently falling   
-    fallInterval: 500,     //How long it takes to drop tetroid 1 square in millisec
+    fallInterval: 1000,     //How long it takes to drop tetroid 1 square in millisec
     filledSqInRow: [],       //Keeps track of how many squares are filled in each row
     gravity: "",
     newShape: true,
@@ -23,9 +23,20 @@ const game = {
         double: 0,
         triple: 0,
         tetris: 0,
-        total: 0
+        total: 0,
     },
-    level: 1
+    statSelectors: {
+        currentScore: "",
+        highestScore: "",
+        single: "",
+        double: "",
+        triple: "",
+        tetris: "",
+        total: "",
+        level: ""
+    },
+    level: 1,
+    pauseFlag: true
 
 }
 
@@ -93,8 +104,10 @@ class Tetroid {
             })
             if (game.currentScore > game.highestScore) {
                 game.highestScore = game.currentScore;
+                game.statSelectors.highestScore.textContent = game.highestScore;
             }
             clearInterval(game.gravity);
+            game.pauseFlag = true;
             console.log("Game Over");
         }
     }
@@ -203,26 +216,76 @@ function setupGame(game) {
         game.filledSqInRow[i] = 0;
     }
 
+    function resetGame() {
+        clearInterval(game.gravity);
+        game.fallInterval = 1000;
+        for (let i = 0; i < game.tilesWide * game.tilesHigh; i++) {
+            game.tileArr[i].style.backgroundColor = 'black';
+        }
+        for(let i = 0; i < game.tilesHigh; i++) {
+            game.filledSqInRow[i] = 0;
+        }
+        game.shapesGenerated = 0;
+        game.currentScore = 0;
+        game.statSelectors.currentScore.textContent = game.currentScore;
+        game.lineStats.single = 0;
+        game.statSelectors.single.textContent = game.lineStats.single;
+        game.lineStats.double = 0;
+        game.statSelectors.double.textContent = game.lineStats.double;
+        game.lineStats.triple = 0;
+        game.statSelectors.triple.textContent = game.lineStats.triple;
+        game.lineStats.tetris = 0;
+        game.statSelectors.tetris.textContent = game.lineStats.tetris;
+        game.lineStats.total = 0;
+        game.statSelectors.total.textContent = game.lineStats.total;
+        game.level = 1;
+        game.statSelectors.level.textContent = game.level;
+        game.pauseFlag = false;
+    }
+
     // Display scores and level in score banner
-    let highScore = document.querySelector('#highScore');
-    highScore.textContent = game.highestScore;
+    game.statSelectors.highestScore = document.querySelector('#highScore');
+    game.statSelectors.highestScore.textContent = game.highestScore;
 
-    let curScore = document.querySelector('#currentScore');
-    curScore.textContent = game.currentScore;
+    game.statSelectors.currentScore = document.querySelector('#currentScore');
+    game.statSelectors.currentScore.textContent = game.currentScore;
 
-    let level = document.querySelector('#level');
-    level.textContent = game.level;
+    game.statSelectors.level = document.querySelector('#level');
+    game.statSelectors.level.textContent = game.level;
 
     // Create Play and Pause buttons in score banner
-    let playButton = document.querySelector('#play');
-    playButton.addEventListener('click', () => {
-        clearInterval(game.gravity);
+    let newGameButton = document.querySelector('#newGame');
+    newGameButton.addEventListener('click', () => {
+        newGameButton.blur();
+        resetGame()
         game.gravity = setInterval(playGame, game.fallInterval);
     })
-    let pauseButton = document.querySelector('#pause');
-    pauseButton.addEventListener('click', () => {
-        clearInterval(game.gravity);
+    let playPauseButton = document.querySelector('#play-pause');
+    playPauseButton.addEventListener('click', () => {
+        if (game.pauseFlag) {
+            playPauseButton.blur();
+            game.gravity = setInterval(playGame, game.fallInterval);
+            game.pauseFlag = false;
+        }
+        else {
+            clearInterval(game.gravity);
+            game.pauseFlag = true;
+        }
     })
+    // Shapes and number played displayed in the aside
+    
+
+    // Number of lines completed displayed in the aside
+    game.statSelectors.single = document.querySelector('#oneRow');
+    game.statSelectors.single.textContent = game.lineStats.single;
+    game.statSelectors.double = document.querySelector('#twoRow');
+    game.statSelectors.double.textContent = game.lineStats.double;
+    game.statSelectors.triple = document.querySelector('#threeRow');
+    game.statSelectors.triple.textContent = game.lineStats.triple;
+    game.statSelectors.tetris = document.querySelector('#tetris');
+    game.statSelectors.tetris.textContent = game.lineStats.tetris;
+    game.statSelectors.total = document.querySelector('#total');
+    game.statSelectors.total.textContent = game.lineStats.total;
 
     function playGame() {
         game.shapesGenerated += 1;
@@ -261,7 +324,7 @@ function setupGame(game) {
         }
     }
     
-    game.gravity = setInterval(playGame, game.fallInterval);
+    //game.gravity = setInterval(playGame, game.fallInterval);
 
     function clearRows(rowsToClear) {
         let rowsToClearLen = rowsToClear.length;
@@ -284,22 +347,29 @@ function setupGame(game) {
         }
     }
     function updateScoreStats(rowsToClearLen) {
-        game.currentScore += parseInt(100 * rowsToClearLen * (1 + (rowsToClearLen - 1) * 0.1));
+        game.currentScore += parseInt(100 * rowsToClearLen * (1 + (rowsToClearLen - 1) * 0.1 + 0.5 * game.level));
+        game.statSelectors.currentScore.textContent = game.currentScore;
         game.lineStats.total += rowsToClearLen;
+        game.statSelectors.total.textContent = game.lineStats.total;
         game.level = 1 + Math.floor(game.lineStats.total / 10);
+        game.statSelectors.level.textContent = game.level;
         game.fallInterval = 1000 * 0.9;
         switch(rowsToClearLen) {
             case 1:
                 game.lineStats.single += 1;
+                game.statSelectors.single.textContent = game.lineStats.single;
                 break;
             case 2:
                 game.lineStats.double += 1;
+                game.statSelectors.double.textContent = game.lineStats.double;
                 break;
             case 3:
                 game.lineStats.triple += 1;
+                game.statSelectors.triple.textContent = game.lineStats.triple;
                 break;
             case 4:
                 game.lineStats.tetris += 1;
+                game.statSelectors.tetris.textContent = game.lineStats.tetris;
                 break;
         }
         
