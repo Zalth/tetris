@@ -6,12 +6,10 @@ const game = {
     gridWidth: 0,           //Will update on setupGame(game)
     gridHeight: 0,          //Will update on setupGame(game)
     gridSelector: "",       //Will update on setupGame(game)
-    gameWidth: "",          //Will update on setupGame(game)
-    gameHeight: "",         //Will update on setupGame(game)
     tileArr: [],            //Will update on setupGame(game)
     shapeTemplates: [],     //Will store all tetroids and all orientations
     curTemplateId: "",      //The tetroid currently falling   
-    fallInterval: 1000,     //How long it takes to drop tetroid 1 square in millisec
+    fallInterval: 900,     //How long it takes to drop tetroid 1 square in millisec
     filledSqInRow: [],       //Keeps track of how many squares are filled in each row
     gravity: "",
     newShape: true,
@@ -35,25 +33,6 @@ const game = {
         total: "",
         level: ""
     },
-    asideShapeStats: {
-        lShape: 0,
-        revLShape: 0,
-        tShape: 0,
-        squareShape: 0,
-        sShape: 0,
-        revSShape: 0,
-        lineShape: 0
-    },
-
-    asideShapeSelectors: {
-        lShape: "",
-        revLShape: "",
-        tShape: "",
-        squareShape: "",
-        sShape: "",
-        revSShape: "",
-        lineShape: ""
-    },
     level: 1,
     pauseFlag: true
 
@@ -61,7 +40,7 @@ const game = {
 
 // Class for each individual tetroid shape and rotational orientation
 class Tetroid {
-    constructor(templateId, color, orientation0, orientation1, orientation2, orientation3) {
+    constructor(templateId, templateName, color, orientation0, orientation1, orientation2, orientation3, asideTemplate) {
         this.id = templateId;
         this.color = color;
         this.vers0 = orientation0;
@@ -72,7 +51,10 @@ class Tetroid {
         this.curOrientation = 0;
         this.nextPosTiles = [];
         this.nextRotationTiles = [];
+        this.asideShapeSelector = ''
         this.numGenerated = 0;
+        this.asideTemplate = asideTemplate;
+        this.name = templateName;
     }
     
     // Checks next position tiles before spawning or moving tetroid
@@ -193,31 +175,31 @@ class Tetroid {
 
 // Define all playable tetroid shapes and rotational orientations
 // Add to the shapes array
-const lineShape = new Tetroid(0, 'blue', [0, 1, 2, 3], [2, 12, 22, 32], [0, 1, 2, 3], [2, 12, 22, 32]);
-const lShape = new Tetroid(1, 'green', [3, 11, 12, 13], [1, 2, 12, 22], [11, 12, 13, 21], [1, 11, 21, 22]);
-const revLShape = new Tetroid(2, 'yellow', [11, 12, 13, 1], [2, 12, 22, 3], [11, 12, 13, 23], [2, 12, 21, 22])
-const tShape = new Tetroid(3, 'orange', [11, 12, 13, 2], [2, 12, 22, 13], [11, 12, 13, 22], [2, 12, 22, 11]);
-const squareShape = new Tetroid(4, 'greenyellow', [1, 2, 11, 12], [1, 2, 11, 12], [1, 2, 11, 12], [1, 2, 11, 12]);
-const sShape = new Tetroid(5, 'violet', [2, 3, 11, 12], [1, 11, 12, 22], [2, 3, 11, 12], [1, 11, 12, 22]);
-const revSShape = new Tetroid(6, 'darksalmon', [1, 2, 12, 13], [2, 11, 12, 21], [1, 2, 12, 13], [2, 11, 12, 21]);
-game.shapeTemplates = [lineShape, lShape, revLShape, tShape, squareShape, sShape, revSShape];
+const lShape = new Tetroid(1, 'lShape', 'green', [3, 11, 12, 13], [1, 2, 12, 22], [11, 12, 13, 21], [1, 11, 21, 22], [3, 5, 6, 7]);
+const revLShape = new Tetroid(2, 'revLShape', 'yellow', [11, 12, 13, 1], [2, 12, 22, 3], [11, 12, 13, 23], [2, 12, 21, 22], [2, 3, 5, 7])
+const tShape = new Tetroid(3, 'tShape', 'orange', [11, 12, 13, 2], [2, 12, 22, 13], [11, 12, 13, 22], [2, 12, 22, 11], [3, 4, 5, 7]);
+const squareShape = new Tetroid(4, 'squareShape', 'greenyellow', [1, 2, 11, 12], [1, 2, 11, 12], [1, 2, 11, 12], [1, 2, 11, 12], [2, 4, 3, 5]);
+const sShape = new Tetroid(5, 'sShape', 'violet', [2, 3, 11, 12], [1, 11, 12, 22], [2, 3, 11, 12], [1, 11, 12, 22], [3, 4, 5, 6]);
+const revSShape = new Tetroid(6, 'revSShape', 'darksalmon', [1, 2, 12, 13], [2, 11, 12, 21], [1, 2, 12, 13], [2, 11, 12, 21], [2, 4, 5, 7]);
+const lineShape = new Tetroid(0, 'lineShape', 'blue', [0, 1, 2, 3], [2, 12, 22, 32], [0, 1, 2, 3], [2, 12, 22, 32], [0, 2, 4, 6]);
+game.shapeTemplates = [lShape, revLShape, tShape, squareShape, sShape, revSShape, lineShape];
 
 // Randomly selects next tetroid to appear
 function generateShape() {
     game.curTemplateId = Math.floor(Math.random() * game.shapeTemplates.length);
     game.shapeTemplates[game.curTemplateId].initialPos();
+    game.shapeTemplates[game.curTemplateId].numGenerated += 1;
+    game.shapeTemplates[game.curTemplateId].asideShapeSelector.textContent = game.shapeTemplates[game.curTemplateId].numGenerated
 }
 
 // Must call inorder to instantiate the game board
 function setupGame(game) {
     // Calculates and sets the width and height of playable area in px, including tile borders using the game object
     game.gridSelector = document.querySelector('#gameGrid');
-    game.gridWidth = game.tilesWide * game.tileDimension + 2 * game.tilesWide;
-    game.gridHeight = game.tilesHigh * game.tileDimension + 2 * game.tilesHigh;
-    game.gameWidth = game.gridWidth + "px";
-    game.gridSelector.style.width = game.gameWidth;
-    game.gameHeight = game.gridHeight + "px";
-    game.gridSelector.style.height = game.gameHeight;
+    game.gridWidth = (game.tilesWide * game.tileDimension + 2 * game.tilesWide) + 'px';
+    game.gridHeight = (game.tilesHigh * game.tileDimension + 2 * game.tilesHigh) + 'px';
+    game.gridSelector.style.width = game.gridWidth;
+    game.gridSelector.style.height = game.gridHeight;
 
     // Instantiates all game tiles with borders and adds to the tileArr
     for(let i = 0; i < game.tilesWide * game.tilesHigh; i++) {
@@ -238,7 +220,7 @@ function setupGame(game) {
 
     function resetGame() {
         clearInterval(game.gravity);
-        game.fallInterval = 1000;
+        game.fallInterval = 900;
         for (let i = 0; i < game.tilesWide * game.tilesHigh; i++) {
             game.tileArr[i].style.backgroundColor = 'black';
         }
@@ -293,15 +275,12 @@ function setupGame(game) {
         }
     })
     // shapes in aside
-    const shapesAside = ['lShape', 'revLShape', 'tShape', 'squareShape', 'sShape', 'revSShape', 'lineShape']
-    const asideTemplates = [[3, 5, 6, 7], [2, 3, 5, 7], [3, 4, 5, 7], [2, 4, 3, 5], [3, 4, 5, 6], [2, 4, 5, 7], [0, 2, 4, 6]]
-
     shapeDisplay = document.querySelector('#shapeStats');
     for (let i = 0; i < 7; i++) {
         let newDiv = document.createElement('div')
         newDiv.className = "asideShapes"
         newDiv.style.height = '44px'
-        let initShapeTemp = asideTemplates[i]
+        let initShapeTemp = game.shapeTemplates[i].asideTemplate;
         for (let j = 0; j < 8; j++) {
             let gridTile = document.createElement('div');
             gridTile.style.width = '20px';
@@ -313,9 +292,10 @@ function setupGame(game) {
             }
             newDiv.append(gridTile)
         }
-        let newSpan = document.createElement('span')
-        newSpan.id = shapesAside[i]
-        newSpan.textContent = 0
+        game.shapeTemplates[i].asideShapeSelector = document.createElement('span')
+        let newSpan = game.shapeTemplates[i].asideShapeSelector
+        newSpan.id = game.shapeTemplates[i].name
+        newSpan.textContent = game.shapeTemplates[i].numGenerated
         shapeDisplay.append(newDiv, newSpan)
     }
     
@@ -399,7 +379,7 @@ function setupGame(game) {
         game.statSelectors.total.textContent = game.lineStats.total;
         game.level = 1 + Math.floor(game.lineStats.total / 10);
         game.statSelectors.level.textContent = game.level;
-        game.fallInterval = 1000 * 0.9;
+        game.fallInterval = 900 * 0.9;
         switch(rowsToClearLen) {
             case 1:
                 game.lineStats.single += 1;
