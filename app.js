@@ -35,6 +35,25 @@ const game = {
         total: "",
         level: ""
     },
+    asideShapeStats: {
+        lShape: 0,
+        revLShape: 0,
+        tShape: 0,
+        squareShape: 0,
+        sShape: 0,
+        revSShape: 0,
+        lineShape: 0
+    },
+
+    asideShapeSelectors: {
+        lShape: "",
+        revLShape: "",
+        tShape: "",
+        squareShape: "",
+        sShape: "",
+        revSShape: "",
+        lineShape: ""
+    },
     level: 1,
     pauseFlag: true
 
@@ -53,6 +72,7 @@ class Tetroid {
         this.curOrientation = 0;
         this.nextPosTiles = [];
         this.nextRotationTiles = [];
+        this.numGenerated = 0;
     }
     
     // Checks next position tiles before spawning or moving tetroid
@@ -272,8 +292,34 @@ function setupGame(game) {
             game.pauseFlag = true;
         }
     })
-    // Shapes and number played displayed in the aside
+    // shapes in aside
+    const shapesAside = ['lShape', 'revLShape', 'tShape', 'squareShape', 'sShape', 'revSShape', 'lineShape']
+    const asideTemplates = [[3, 5, 6, 7], [2, 3, 5, 7], [3, 4, 5, 7], [2, 4, 3, 5], [3, 4, 5, 6], [2, 4, 5, 7], [0, 2, 4, 6]]
+
+    shapeDisplay = document.querySelector('#shapeStats');
+    for (let i = 0; i < 7; i++) {
+        let newDiv = document.createElement('div')
+        newDiv.className = "asideShapes"
+        newDiv.style.height = '44px'
+        let initShapeTemp = asideTemplates[i]
+        for (let j = 0; j < 8; j++) {
+            let gridTile = document.createElement('div');
+            gridTile.style.width = '20px';
+            gridTile.style.height = '20px';
+            
+            if (j == initShapeTemp[0] || j == initShapeTemp[1] || j == initShapeTemp[2] || j == initShapeTemp[3]) {
+                gridTile.style.backgroundColor = "blue"
+                gridTile.style.border = "1px solid black";
+            }
+            newDiv.append(gridTile)
+        }
+        let newSpan = document.createElement('span')
+        newSpan.id = shapesAside[i]
+        newSpan.textContent = 0
+        shapeDisplay.append(newDiv, newSpan)
+    }
     
+
 
     // Number of lines completed displayed in the aside
     game.statSelectors.single = document.querySelector('#oneRow');
