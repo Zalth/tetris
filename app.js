@@ -5,84 +5,128 @@ const game = {
     tilesHigh: 15,          //15 rows
     gridWidth: 0,           //Will update on setupGame(game)
     gridHeight: 0,          //Will update on setupGame(game)
-    gridSelector: "",       //Will update on setupGame(game)
+    gridSelector: '',       //Will update on setupGame(game)
     tileArr: [],            //Will update on setupGame(game)
     shapeTemplates: [],     //Will store all tetroids and all orientations
-    curTemplateId: "",      //The tetroid currently falling   
-    fallInterval: 900,     //How long it takes to drop tetroid 1 square in millisec
+    curTemplateId: '',      //The tetroid currently falling   
+    fallInterval: {
+        initial: 900,
+        current: 900
+    },     //How long it takes to drop tetroid 1 square in millisec
     filledSqInRow: [],       //Keeps track of how many squares are filled in each row
     scoreArr: [],
-    gravity: "",
+    lineArr: [],
+    shapeStatArr: [],
+    gravity: '',
     newShape: true,
-    shapesGenerated: 0,
-    currentScore: 0,
-    highestScore: 0,
-    totLinesCleared: 0,
-    lineStats: {
-        single: 0,
-        double: 0,
-        triple: 0,
-        tetris: 0,
-        total: 0,
-    },
-    statSelectors: {
-        currentScore: "",
-        highestScore: "",
-        single: "",
-        double: "",
-        triple: "",
-        tetris: "",
-        total: "",
-        level: ""
-    },
-    level: 1,
+    shapesGenerated: 1,
+    currentScore: '',
+    highestScore: '',
+    oneRowCleared: '',
+    twoRowsCleared: '',
+    threeRowsCleared: '',
+    fourRowsCleared: '',
+    totalRowsCleared: '',
+    level: '',
     pauseFlag: true
 
 }
 // Class to hold information used in calculating the score
-class Score {
-    constructor(htmlId, initValue) {
+class Stats {
+    constructor(htmlId) {
         this.htmlId = '#' + htmlId;
-        this.initValue = initValue;
         this.displaySelector = document.querySelector(this.htmlId);
-        this.stat = initValue;
+        this.stat = 0;
+    }
+    initialize() {
+        this.displaySelector.textContent = this.stat;
     }
     update(adjustedBy) {
         this.stat += adjustedBy;
         this.displaySelector.textContent = this.stat;
     }
     reset() {
-        this.stat = this.initValue;
-        this.update(this.initValue);
+        this.stat = 0;
+        this.displaySelector.textContent = this.stat;
     }
 }
 
-// Instantiate all members of Score class and add to game.scoreArr
-const oneRowCleared = new Score('oneRow', 0);
-const twoRowsCleared = new Score('twoRow', 0);
-const threeRowsCleared = new Score('threeRow', 0);
-const fourRowsCleared = new Score('tetris', 0);
-const level = new Score('level', 1);
-const curScore = new Score('currentScore', 0);
-const highScore = new Score('highScore', 0);
+// Extend Stats class for number of lines cleared and current Level
+class LineStats extends Stats {
+    constructor(htmlId) {
+        super(htmlId);
+    }
+    update(adjustedBy) {
+        this.stat += adjustedBy;
+        this.displaySelector.textContent = this.stat;
+        game.level.stat = 1 + Math.floor(game.totalRowsCleared.stat / 10);
+        game.level.displaySelector.textContent = game.level.stat;
+        game.fallInterval.current = game.fallInterval.initial * Math.pow(0.9, (game.level.stat - 1));
+    }
+}
 
-game.scoreArr = [oneRowCleared, twoRowsCleared, threeRowsCleared, fourRowsCleared, level, curScore, highScore];
-game.scoreArr.forEach(item => {item.reset()});
+// Extends Stats class for current and highest score
+class Scores extends Stats {
+    constructor(htmlId) {
+        super(htmlId);
+    }
+    setHighestScore() {
+        if (game.currentScore.stat > game.highestScore.stat) {
+            game.highestScore.stat = game.currentScore.stat;
+            game.scoreArr[1].displaySelector.textContent = game.highestScore.stat;
+        }
+    }
+    update(rowsClearedThisMove) {
+        this.stat += parseInt(100 * rowsClearedThisMove * (1 + (rowsClearedThisMove - 1) * 0.1 + 0.5 * game.level.stat));
+        game.currentScore.stat = this.stat;
+        this.displaySelector.textContent = this.stat;
+        this.setHighestScore();
+    }
+}
 
+// Extends Stats class for how many of a specific tetroid has been spawned
+class ShapeStats extends Stats {
+    constructor(htmlId, asideTemplate) {
+        super(htmlId);
+        this.asideTemplate = asideTemplate;
+        this.displaySelector = document.createElement('span');
+        this.containerSelector = document.querySelector('#shapeStats');
+    }
+    initialize() {
+        let newDiv = document.createElement('div');
+        newDiv.className = "asideShapes";
+        newDiv.style.height = '44px';
+        for (let i = 0; i < 8; i++) {
+            let gridTile = document.createElement('div');
+            gridTile.style.width = '20px';
+            gridTile.style.height = '20px';
+            
+            if (i == this.asideTemplate[0] || i == this.asideTemplate[1] || i == this.asideTemplate[2] || i == this.asideTemplate[3]) {
+                gridTile.style.backgroundColor = "blue";
+                gridTile.style.border = "1px solid black";
+            }
+            newDiv.append(gridTile);
+        }
+        this.displaySelector.id = this.htmlId;
+        this.displaySelector.textContent = this.stat;
+        this.containerSelector.append(newDiv, this.displaySelector);
+    }
+    update(adjustedBy) {
+        this.stat += adjustedBy;
+        this.displaySelector.textContent = this.stat;
+        game.shapesGenerated += adjustedBy;
+    }
+}
 
 // Class for each individual tetroid shape and rotational orientation
 class Tetroid {
-    constructor(templateId, templateName, color, orientation0, orientation1, orientation2, orientation3, asideTemplate) {
+    constructor(templateId, color, orientation0, orientation1, orientation2, orientation3) {
         this.id = templateId;
-        this.name = templateName;
         this.color = color;
         this.vers0 = orientation0;
         this.vers1 = orientation1;
         this.vers2 = orientation2;
         this.vers3 = orientation3;
-        this.asideTemplate = asideTemplate;
-        this.asideShapeSelector = ''
-        this.numGenerated = 0;
         this.curOrientation = 0;
         this.curPosTiles = this.vers0.slice();
         this.nextPosTiles = [];
@@ -136,10 +180,7 @@ class Tetroid {
                 this.curPosTiles[index] = tilePos + shiftBy;
                 game.tileArr[tilePos + shiftBy].style.backgroundColor = this.color;
             })
-            if (game.currentScore > game.highestScore) {
-                game.highestScore = game.currentScore;
-                game.statSelectors.highestScore.textContent = game.highestScore;
-            }
+            game.currentScore.setHighestScore();
             clearInterval(game.gravity);
             game.pauseFlag = true;
             console.log("Game Over");
@@ -205,28 +246,63 @@ class Tetroid {
     }
 }
 
-// Define all playable tetroid shapes and rotational orientations
-// Add to the shapes array
-const lShape = new Tetroid(1, 'lShape', 'green', [3, 11, 12, 13], [1, 2, 12, 22], [11, 12, 13, 21], [1, 11, 21, 22], [3, 5, 6, 7]);
-const revLShape = new Tetroid(2, 'revLShape', 'yellow', [11, 12, 13, 1], [2, 12, 22, 3], [11, 12, 13, 23], [2, 12, 21, 22], [2, 3, 5, 7])
-const tShape = new Tetroid(3, 'tShape', 'orange', [11, 12, 13, 2], [2, 12, 22, 13], [11, 12, 13, 22], [2, 12, 22, 11], [3, 4, 5, 7]);
-const squareShape = new Tetroid(4, 'squareShape', 'greenyellow', [1, 2, 11, 12], [1, 2, 11, 12], [1, 2, 11, 12], [1, 2, 11, 12], [2, 4, 3, 5]);
-const sShape = new Tetroid(5, 'sShape', 'violet', [2, 3, 11, 12], [1, 11, 12, 22], [2, 3, 11, 12], [1, 11, 12, 22], [3, 4, 5, 6]);
-const revSShape = new Tetroid(6, 'revSShape', 'darksalmon', [1, 2, 12, 13], [2, 11, 12, 21], [1, 2, 12, 13], [2, 11, 12, 21], [2, 4, 5, 7]);
-const lineShape = new Tetroid(0, 'lineShape', 'blue', [0, 1, 2, 3], [2, 12, 22, 32], [0, 1, 2, 3], [2, 12, 22, 32], [0, 2, 4, 6]);
+// Instantiate all members of Score class
+function initializeStats() {
+    // Initialize all LineStat class objects
+    const oneRowCleared = new LineStats('oneRow');
+    game.oneRowCleared = oneRowCleared;
+    const twoRowsCleared = new LineStats('twoRow');
+    game.twoRowsCleared = twoRowsCleared;
+    const threeRowsCleared = new LineStats('threeRow');
+    game.threeRowsCleared = threeRowsCleared;
+    const fourRowsCleared = new LineStats('tetris');
+    game.fourRowsCleared = fourRowsCleared;
+    const totalRowsCleared = new LineStats('total');
+    game.totalRowsCleared = totalRowsCleared;
+    const level = new LineStats('level');
+    game.level = level;
+    game.level.stat = 1;
+    
+    game.lineArr = [oneRowCleared, twoRowsCleared, threeRowsCleared, fourRowsCleared, totalRowsCleared, level];
+    game.lineArr.forEach(item => {item.initialize()});
 
-game.shapeTemplates = [lShape, revLShape, tShape, squareShape, sShape, revSShape, lineShape];
+    // Initialize all Scores class objects
+    const currentScore = new Scores('currentScore');
+    game.currentScore = currentScore;
+    const highestScore = new Scores('highScore');
+    game.highestScore = highestScore;
+    
+    game.scoreArr = [currentScore, highestScore];
+    game.scoreArr.forEach(item => {item.initialize()});
 
-// Randomly selects next tetroid to appear
-function generateShape() {
-    game.curTemplateId = Math.floor(Math.random() * game.shapeTemplates.length);
-    game.shapeTemplates[game.curTemplateId].initialPos();
-    game.shapeTemplates[game.curTemplateId].numGenerated += 1;
-    game.shapeTemplates[game.curTemplateId].asideShapeSelector.textContent = game.shapeTemplates[game.curTemplateId].numGenerated
+    // Initialize all ShapeStats class objects
+    const lShapeStats = new ShapeStats('lShape', [3, 5, 6, 7]);
+    const revLShapeStats = new ShapeStats('revLShape', [2, 3, 5, 7])
+    const tShapeStats = new ShapeStats('tShape', [3, 4, 5, 7]);
+    const squareShapeStats = new ShapeStats('squareShape', [2, 4, 3, 5]);
+    const sShapeStats = new ShapeStats('sShape', [3, 4, 5, 6]);
+    const revSShapeStats = new ShapeStats('revSShape', [2, 4, 5, 7]);
+    const lineShapeStats = new ShapeStats('lineShape', [0, 2, 4, 6]);   
+
+    game.shapeStatArr = [lShapeStats, revLShapeStats, tShapeStats, squareShapeStats, sShapeStats, revSShapeStats, lineShapeStats];
+    game.shapeStatArr.forEach(item => {item.initialize()});
 }
 
-// Must call inorder to instantiate the game board
-function setupGame(game) {
+// Instantiate all members of Tetroid class
+function intializeTetroids() {
+    const lShape = new Tetroid(0, 'green', [3, 11, 12, 13], [1, 2, 12, 22], [11, 12, 13, 21], [1, 11, 21, 22]);
+    const revLShape = new Tetroid(1, 'yellow', [11, 12, 13, 1], [2, 12, 22, 3], [11, 12, 13, 23], [2, 12, 21, 22])
+    const tShape = new Tetroid(2, 'orange', [11, 12, 13, 2], [2, 12, 22, 13], [11, 12, 13, 22], [2, 12, 22, 11]);
+    const squareShape = new Tetroid(3, 'greenyellow', [1, 2, 11, 12], [1, 2, 11, 12], [1, 2, 11, 12], [1, 2, 11, 12]);
+    const sShape = new Tetroid(4, 'violet', [2, 3, 11, 12], [1, 11, 12, 22], [2, 3, 11, 12], [1, 11, 12, 22]);
+    const revSShape = new Tetroid(5, 'darksalmon', [1, 2, 12, 13], [2, 11, 12, 21], [1, 2, 12, 13], [2, 11, 12, 21]);
+    const lineShape = new Tetroid(6, 'blue', [0, 1, 2, 3], [2, 12, 22, 32], [0, 1, 2, 3], [2, 12, 22, 32]);
+
+    game.shapeTemplates = [lShape, revLShape, tShape, squareShape, sShape, revSShape, lineShape];
+}
+
+// Instantiate play area
+function initializePlayArea() {
     // Calculates and sets the width and height of playable area in px, including tile borders using the game object
     game.gridSelector = document.querySelector('#gameGrid');
     game.gridWidth = (game.tilesWide * game.tileDimension + 2 * game.tilesWide) + 'px';
@@ -237,12 +313,10 @@ function setupGame(game) {
     // Instantiates all game tiles with borders and adds to the tileArr
     for(let i = 0; i < game.tilesWide * game.tilesHigh; i++) {
         let gridTile = document.createElement('div');
-        gridTile.id = i;
         gridTile.style.width = game.tileDimension + "px";
         gridTile.style.height = game.tileDimension + "px";
         gridTile.style.border = "1px solid white";
         gridTile.style.backgroundColor = 'black';
-        gridTile.textContent = i;
         game.gridSelector.append(gridTile);
         game.tileArr.push(gridTile);
     }
@@ -250,56 +324,21 @@ function setupGame(game) {
     for(let i = 0; i < game.tilesHigh; i++) {
         game.filledSqInRow[i] = 0;
     }
+}
 
-    function resetGame() {
-        clearInterval(game.gravity);
-        game.fallInterval = 900;
-        for (let i = 0; i < game.tilesWide * game.tilesHigh; i++) {
-            game.tileArr[i].style.backgroundColor = 'black';
-        }
-        for(let i = 0; i < game.tilesHigh; i++) {
-            game.filledSqInRow[i] = 0;
-        }
-        game.shapesGenerated = 0;
-        game.currentScore = 0;
-        game.statSelectors.currentScore.textContent = game.currentScore;
-        game.lineStats.single = 0;
-        game.statSelectors.single.textContent = game.lineStats.single;
-        game.lineStats.double = 0;
-        game.statSelectors.double.textContent = game.lineStats.double;
-        game.lineStats.triple = 0;
-        game.statSelectors.triple.textContent = game.lineStats.triple;
-        game.lineStats.tetris = 0;
-        game.statSelectors.tetris.textContent = game.lineStats.tetris;
-        game.lineStats.total = 0;
-        game.statSelectors.total.textContent = game.lineStats.total;
-        game.level = 1;
-        game.statSelectors.level.textContent = game.level;
-        game.pauseFlag = false;
-    }
-
-    // Display scores and level in score banner
-    game.statSelectors.highestScore = document.querySelector('#highScore');
-    game.statSelectors.highestScore.textContent = game.highestScore;
-
-    game.statSelectors.currentScore = document.querySelector('#currentScore');
-    game.statSelectors.currentScore.textContent = game.currentScore;
-
-    game.statSelectors.level = document.querySelector('#level');
-    game.statSelectors.level.textContent = game.level;
-
-    // Create Play and Pause buttons in score banner
+// Create Play and Pause buttons in score banner
+function initializeGameButtons() { 
     let newGameButton = document.querySelector('#newGame');
     newGameButton.addEventListener('click', () => {
         newGameButton.blur();
         resetGame()
-        game.gravity = setInterval(playGame, game.fallInterval);
+        game.gravity = setInterval(playGame, game.fallInterval.current);
     })
     let playPauseButton = document.querySelector('#play-pause');
     playPauseButton.addEventListener('click', () => {
         if (game.pauseFlag) {
             playPauseButton.blur();
-            game.gravity = setInterval(playGame, game.fallInterval);
+            game.gravity = setInterval(playGame, game.fallInterval.current);
             game.pauseFlag = false;
         }
         else {
@@ -307,83 +346,110 @@ function setupGame(game) {
             game.pauseFlag = true;
         }
     })
-    // shapes in aside
-    shapeDisplay = document.querySelector('#shapeStats');
-    for (let i = 0; i < 7; i++) {
-        let newDiv = document.createElement('div')
-        newDiv.className = "asideShapes"
-        newDiv.style.height = '44px'
-        let initShapeTemp = game.shapeTemplates[i].asideTemplate;
-        for (let j = 0; j < 8; j++) {
-            let gridTile = document.createElement('div');
-            gridTile.style.width = '20px';
-            gridTile.style.height = '20px';
-            
-            if (j == initShapeTemp[0] || j == initShapeTemp[1] || j == initShapeTemp[2] || j == initShapeTemp[3]) {
-                gridTile.style.backgroundColor = "blue"
-                gridTile.style.border = "1px solid black";
-            }
-            newDiv.append(gridTile)
-        }
-        game.shapeTemplates[i].asideShapeSelector = document.createElement('span')
-        let newSpan = game.shapeTemplates[i].asideShapeSelector
-        newSpan.id = game.shapeTemplates[i].name
-        newSpan.textContent = game.shapeTemplates[i].numGenerated
-        shapeDisplay.append(newDiv, newSpan)
-    }
+}
+
+// Set up listeners and logic for moving shapes with arrows and rotating with spacebar
+function initializeKeyControls() {
+    document.addEventListener('keydown', (event) => {
+        let canShift = true;
+        let isLeftSide = false;
+        let isRightSide = false;
+        let isOffBottom = false;
+        let isNextTileOccupied = false;
+        let curTetroid = game.shapeTemplates[game.curTemplateId];
+        switch (event.code) {
+            // Rotate tetroid if spacebar clicked
+            case "Space":
+                let nextRot = curTetroid.nextRotation();
     
-
-
-    // Number of lines completed displayed in the aside
-    game.statSelectors.single = document.querySelector('#oneRow');
-    game.statSelectors.single.textContent = game.lineStats.single;
-    game.statSelectors.double = document.querySelector('#twoRow');
-    game.statSelectors.double.textContent = game.lineStats.double;
-    game.statSelectors.triple = document.querySelector('#threeRow');
-    game.statSelectors.triple.textContent = game.lineStats.triple;
-    game.statSelectors.tetris = document.querySelector('#tetris');
-    game.statSelectors.tetris.textContent = game.lineStats.tetris;
-    game.statSelectors.total = document.querySelector('#total');
-    game.statSelectors.total.textContent = game.lineStats.total;
-
-    function playGame() {
-        game.shapesGenerated += 1;
-        if (game.shapesGenerated == 1) {
-            generateShape();
-            let curTetroid = game.shapeTemplates[game.curTemplateId];
-            curTetroid.updatePos();
-        }
-        else {
-            let curTetroid = game.shapeTemplates[game.curTemplateId];
-            let canShift = curTetroid.canMoveTetroid(10);
-            if (game.newShape && game.filledSqInRow[2] == 0) {
-                curTetroid.curPosTiles = curTetroid.nextPosTiles.slice();
-                curTetroid.updatePos();
-                game.newShape = false;
-            }
-            else if(canShift) {
-                curTetroid.curPosTiles = curTetroid.nextPosTiles.slice();
-                curTetroid.updatePos();
-            }
-            else {
-                let rowsToClear = []
-                curTetroid.curPosTiles.forEach(tilePos => {
-                    game.tileArr[tilePos].style.backgroundColor = 'gray';
-                    let rowNum = Math.floor(tilePos / game.tilesWide);
-                    game.filledSqInRow[rowNum] += 1;
-                    if (game.filledSqInRow[rowNum] >= game.tilesWide) {
-                        rowsToClear.push(rowNum);
+                nextRot.forEach((tilePos) => {
+                    // Check if one of the new tiles is on the right side of the screen
+                    if ((tilePos) % game.tilesWide == 9) {
+                        isRightSide = true;
+                    }
+                    // Check if one of the new tiles is on the left side of the screen
+                    else if ((tilePos) % game.tilesWide == 0) {
+                        isLeftSide = true;
+                    }
+                    
+                    // Check if one of the new tiles would be off the bottom of the screen
+                    if ((tilePos) >= (game.tilesWide * game.tilesHigh)) {
+                        isOffBottom = true;
+                    }
+    
+                    // Check if the next tile is occupied by checking the color
+                    if (isOffBottom == false) {
+                        if (game.tileArr[tilePos].style.backgroundColor == 'gray') {
+                            isNextTileOccupied = true;
+                        }
+                    }
+    
+                    // Check for shape looping from one side to the other OR if the next tile is occupied
+                    //      OR if the tile would go off the screen on the bottom
+                    // If true, then the shape can't rotate
+                    if ((isLeftSide && isRightSide) || isNextTileOccupied || isOffBottom) {
+                        canShift = false;
                     }
                 })
-                if (rowsToClear.length > 0) {
-                    clearRows(rowsToClear);
+                
+                // If the flag is true, then the shape can rotate
+                if (canShift) {
+                    game.shapeTemplates[game.curTemplateId].rotateTetroid();
                 }
-                generateShape();
-            }
+                break;    
+            
+            // Press left arrow to move tetroid left
+            case "ArrowLeft":
+                curTetroid.curPosTiles.forEach((tilePos) => {
+                    // Set a flag if the shape is already on the left side of the screen
+                    if ((tilePos) % game.tilesWide == 0) {
+                        isLeftSide = true;
+                    }
+                })
+                // If the shape is NOT on the left side of the screen, shift the shape one square left
+                if (!isLeftSide) {
+                    if (curTetroid.canMoveTetroid(-1)) {
+                        game.shapeTemplates[game.curTemplateId].updatePos();
+                    }   
+                }
+                break;
+            
+            // Press right arrow to move tetroid right
+            case "ArrowRight":
+                curTetroid.curPosTiles.forEach((tilePos) => {
+                    // Set a flag if the shape is already on the right side of the screen
+                    if ((tilePos) % game.tilesWide == 9) {
+                        isRightSide = true;
+                    }
+                })
+                // If the shape is NOT on the right side of the screen, shift the shape one square right
+                if (!isRightSide) {
+                    if (curTetroid.canMoveTetroid(1)) {
+                        game.shapeTemplates[game.curTemplateId].updatePos();
+                    }   
+                }
+                break;
         }
+    }) 
+}
+
+
+// Must call to initialize the game
+function setupGame() {
+    initializePlayArea();
+    initializeStats();
+    intializeTetroids();
+    initializeGameButtons();
+    initializeKeyControls();
+}
+
+function playGame() {
+    // Randomly selects next tetroid to appear
+    function generateShape() {
+        game.curTemplateId = Math.floor(Math.random() * game.shapeTemplates.length);
+        game.shapeTemplates[game.curTemplateId].initialPos();
+        game.shapeStatArr[game.curTemplateId].update(1);
     }
-    
-    //game.gravity = setInterval(playGame, game.fallInterval);
 
     function clearRows(rowsToClear) {
         let rowsToClearLen = rowsToClear.length;
@@ -393,8 +459,8 @@ function setupGame(game) {
             moveRowsDown(row, i + 1);
         }
     }
+
     function moveRowsDown(row, rowsShifted) {
-        console.log("sq Arr before: " + game.filledSqInRow)
         let rowStartShift = row + rowsShifted - 1;
         for (let i = rowStartShift; i > 0; i--) {
             for (let j = 0; j < 10; j++) {
@@ -405,108 +471,79 @@ function setupGame(game) {
             game.filledSqInRow[k] = game.filledSqInRow[k - 1];
         }
     }
+
     function updateScoreStats(rowsToClearLen) {
-        game.currentScore += parseInt(100 * rowsToClearLen * (1 + (rowsToClearLen - 1) * 0.1 + 0.5 * game.level));
-        game.statSelectors.currentScore.textContent = game.currentScore;
-        game.lineStats.total += rowsToClearLen;
-        game.statSelectors.total.textContent = game.lineStats.total;
-        game.level = 1 + Math.floor(game.lineStats.total / 10);
-        game.statSelectors.level.textContent = game.level;
-        game.fallInterval = 900 * 0.9;
+        game.currentScore.update(rowsToClearLen);
+        game.totalRowsCleared.update(rowsToClearLen);
+        
         switch(rowsToClearLen) {
             case 1:
-                game.lineStats.single += 1;
-                game.statSelectors.single.textContent = game.lineStats.single;
+                game.oneRowCleared.update(1);
                 break;
             case 2:
-                game.lineStats.double += 1;
-                game.statSelectors.double.textContent = game.lineStats.double;
+                game.twoRowsCleared.update(1);    
                 break;
             case 3:
-                game.lineStats.triple += 1;
-                game.statSelectors.triple.textContent = game.lineStats.triple;
+                game.threeRowsCleared.update(1);    
                 break;
             case 4:
-                game.lineStats.tetris += 1;
-                game.statSelectors.tetris.textContent = game.lineStats.tetris;
+                game.fourRowsCleared.update(1);    
                 break;
         }
         
     }
+
+    if (game.shapesGenerated == 1) {
+        generateShape();
+        let curTetroid = game.shapeTemplates[game.curTemplateId];
+        curTetroid.updatePos();
+    }
+    else {
+        let curTetroid = game.shapeTemplates[game.curTemplateId];
+        let canShift = curTetroid.canMoveTetroid(10);
+        if (game.newShape && game.filledSqInRow[2] == 0) {
+            curTetroid.curPosTiles = curTetroid.nextPosTiles.slice();
+            curTetroid.updatePos();
+            game.newShape = false;
+        }
+        else if(canShift) {
+            curTetroid.curPosTiles = curTetroid.nextPosTiles.slice();
+            curTetroid.updatePos();
+        }
+        else {
+            let rowsToClear = []
+            curTetroid.curPosTiles.forEach(tilePos => {
+                game.tileArr[tilePos].style.backgroundColor = 'gray';
+                let rowNum = Math.floor(tilePos / game.tilesWide);
+                game.filledSqInRow[rowNum] += 1;
+                if (game.filledSqInRow[rowNum] >= game.tilesWide) {
+                    rowsToClear.push(rowNum);
+                }
+            })
+            if (rowsToClear.length > 0) {
+                clearRows(rowsToClear);
+            }
+            generateShape();
+        }
+    }
 }
 
 // Called to set up the game
-setupGame(game);
+setupGame();
 
-document.addEventListener('keydown', (event) => {
-    let canShift = true;
-    let isLeftSide = false;
-    let isRightSide = false;
-    let isOffBottom = false;
-    let isNextTileOccupied = false;
-    let curTetroid = game.shapeTemplates[game.curTemplateId];
-    switch (event.code) {
-        // Rotate tetroid if spacebar clicked
-        case "Space":
-            let nextRot = curTetroid.nextRotation();
-
-            nextRot.forEach((tilePos) => {
-                if ((tilePos) % game.tilesWide == 9) {
-                    isRightSide = true;
-                }
-                else if ((tilePos) % game.tilesWide == 0) {
-                    isLeftSide = true;
-                }
-                
-                if ((tilePos) >= (game.tilesWide * game.tilesHigh)) {
-                    isOffBottom = true;
-                }
-
-                if (isOffBottom == false) {
-                    if (game.tileArr[tilePos].style.backgroundColor == 'gray') {
-                        isNextTileOccupied = true;
-                    }
-                }
-
-                if ((isLeftSide && isRightSide) || isNextTileOccupied || isOffBottom) {
-                    canShift = false;
-                }
-            })
-            if (canShift) {
-                game.shapeTemplates[game.curTemplateId].rotateTetroid();
-            }
-            break;    
-        
-        // Press left arrow to move tetroid left
-        case "ArrowLeft":
-            curTetroid.curPosTiles.forEach((tilePos) => {
-                if ((tilePos) % game.tilesWide == 0) {
-                    isLeftSide = true;
-                }
-            })
-            if (!isLeftSide) {
-                if (curTetroid.canMoveTetroid(-1)) {
-                    game.shapeTemplates[game.curTemplateId].updatePos();
-                }   
-            }
-            break;
-        
-        // Press right arrow to move tetroid right
-        case "ArrowRight":
-            curTetroid.curPosTiles.forEach((tilePos) => {
-                if ((tilePos) % game.tilesWide == 9) {
-                    isRightSide = true;
-                }
-            })
-            if (!isRightSide) {
-                if (curTetroid.canMoveTetroid(1)) {
-                    game.shapeTemplates[game.curTemplateId].updatePos();
-                }   
-            }
-            break;
+function resetGame() {
+    clearInterval(game.gravity);
+    game.fallInterval.current = game.fallInterval.initial;
+    for (let i = 0; i < game.tilesWide * game.tilesHigh; i++) {
+        game.tileArr[i].style.backgroundColor = 'black';
     }
-}) 
-
-
-
-//game.shapeTemplates[game.curTemplateId = 3].initialPos()
+    for(let i = 0; i < game.tilesHigh; i++) {
+        game.filledSqInRow[i] = 0;
+    }
+    game.shapesGenerated = 1;
+    game.lineArr.forEach(item => {item.reset()});
+    game.level.update(0);
+    game.currentScore.reset();
+    game.shapeStatArr.forEach(item => {item.reset()});
+    game.pauseFlag = false;
+}
