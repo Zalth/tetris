@@ -9,7 +9,7 @@
     <script src="app.js" defer></script>
     <title>Tetris</title>
 </head>
-<body>
+<body onresize="adjustTileSize()">
     <header class="statBanner">
         <div>High Score: <span id="highScore"></span></div>
         <div>Current Score: <span id="currentScore"></span></div>
@@ -19,9 +19,7 @@
             <button id="play-pause">Play / Pause</button>
         </div>
     </header>
-    <aside class="aside-left-top">
-        <div id="shapeStats"></div>
-    </aside>
+    
     <aside class="aside-left-bottom">
         <div class="controls">
             <button id="rotateCCW" class="oval"><i class="fas fa-undo"></i></button>
@@ -29,6 +27,9 @@
         <div class="controls">
             <button id="moveLeft" class="oval"><i class="fas fa-arrow-left"></i></button>
         </div> 
+    </aside>
+    <aside class="aside-left-top">
+        <div id="shapeStats"></div>
     </aside>
     <main class="gameArea">
         <div id="gameGrid"></div>

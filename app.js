@@ -306,6 +306,22 @@ function intializeTetroids() {
 // Instantiate play area
 function initializePlayArea() {
     // Calculates and sets the width and height of playable area in px, including tile borders using the game object
+    function adjustTileSize() {
+        const screenWidth = window.innerWidth;
+        const screenHeight = window.innerHeight;
+        const adjustTileWidth = (screenWidth - 355) / game.tilesWide;
+        const checkTileHeight = adjustTileWidth * 15 + 80;
+        if (checkTileHeight < screenHeight) {
+            game.tileDimension = adjustTileWidth;
+        }
+        else {
+            adjustTileHeight = (screenHeight - 80) / game.tilesHigh;
+            game.tileDimension = adjustTileHeight;
+        }
+    }
+    
+    adjustTileSize();
+
     game.gridSelector = document.querySelector('#gameGrid');
     game.gridWidth = (game.tilesWide * game.tileDimension + 2 * game.tilesWide) + 'px';
     game.gridHeight = (game.tilesHigh * game.tileDimension + 2 * game.tilesHigh) + 'px';
