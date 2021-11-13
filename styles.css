@@ -16,26 +16,26 @@ body {
     font-size: smaller;
 }
 
-.aside-left-top {
+.aside-left-stats {
     display: flex;
     flex-direction: column;
     background-color: yellow;
     padding: 5px;
 }
-.aside-left-bottom {
+.aside-left-controls {
     display: flex;
     flex-direction: column;
     padding: 5px;
     justify-content:space-evenly;
     align-items:center;
 }
-.aside-right-top {
+.aside-right-stats {
     display: flex;
     flex-direction: column;
     background-color: yellow;
     padding: 5px;
 }
-.aside-right-bottom {
+.aside-right-controls {
     display: flex;
     flex-direction: column;
     padding: 5px;

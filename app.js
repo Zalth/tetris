@@ -309,7 +309,21 @@ function initializePlayArea() {
     function adjustTileSize() {
         let screenWidth = window.innerWidth;
         let screenHeight = window.innerHeight;
-        let adjustTileWidth = (screenWidth - 355) / game.tilesWide;
+        let leftStats = document.querySelector('.aside-left-stats');
+        let rightStats = document.querySelector('.aside-right-stats');
+        let adjustTileWidth = 0;
+
+        if (screenWidth < 500) {
+            leftStats.style.display = "none";
+            rightStats.style.display = "none";
+            adjustTileWidth = (screenWidth - 185) / game.tilesWide;
+        }
+        else {
+            leftStats.style.display = "flex";
+            rightStats.style.display = "flex";
+            adjustTileWidth = (screenWidth - 355) / game.tilesWide;
+        }
+        
         let checkTileHeight = adjustTileWidth * 15 + 80;
         if (checkTileHeight < screenHeight) {
             game.tileDimension = adjustTileWidth;
