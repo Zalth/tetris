@@ -1,6 +1,6 @@
 // Set tile size and dimensions of the game area
 const game = {
-    tileDimension: 30,      //Tiles are 60 px wide
+    tileDimension: 28,      //Tiles are 60 px wide
     tilesWide: 10,          //10 tiles per row
     tilesHigh: 15,          //15 rows
     gridWidth: 0,           //Will update on setupGame(game)
@@ -197,36 +197,22 @@ class Tetroid {
 
     // Selects a rotational orientation of the tetroid
     getVersion(versionNumber) {
-        if (versionNumber == 0) {
-            return this.vers0.slice();
-        }
-        else if (versionNumber == 1) {
-            return this.vers1.slice();
-        }
-        else if (versionNumber == 2) {
-            return this.vers2.slice();
-        }
-        else if (versionNumber == 3) {
-            return this.vers3.slice();
-        }
-        else {
-            console.log("Error in retrieving Tetroid Version");
-        }
+        if (versionNumber == 0) {return this.vers0.slice();}
+        else if (versionNumber == 1) {return this.vers1.slice();}
+        else if (versionNumber == 2) {return this.vers2.slice();}
+        else if (versionNumber == 3) {return this.vers3.slice();}
+        else {console.log("Error in retrieving Tetroid Version");}
     }
 
     // Creates array of next rotation
     nextRotation(direction) {
         let currentVers = this.curOrientation;
         let shiftBy = this.curPosTiles[0] - this.getVersion(currentVers)[0];
-        if (direction == "CW") {
-            currentVers += 1;
-        }
+        if (direction == "CW") {currentVers += 1;}
         else {
             // Choose previous version so can rotate "CCW"
             currentVers -= 1;
-            if (currentVers < 0) {
-                currentVers = 3;
-            }
+            if (currentVers < 0) {currentVers = 3;}
         }
         
         currentVers = currentVers % 4;
@@ -245,15 +231,11 @@ class Tetroid {
         })
 
         let shiftBy = this.curPosTiles[0] - this.getVersion(this.curOrientation)[0];
-        if (direction == "CW") {
-            this.curOrientation += 1;
-        }
+        if (direction == "CW") {this.curOrientation += 1;}
         else {
             // Choose previous version so can rotate "CCW"
             this.curOrientation -= 1;
-            if (this.curOrientation < 0) {
-                this.curOrientation = 3
-            }
+            if (this.curOrientation < 0) {this.curOrientation = 3}
         }
         
         this.curOrientation = this.curOrientation % 4;
@@ -354,9 +336,7 @@ function initializeControls() {
         let curTetroid = game.shapeTemplates[game.curTemplateId];
         curTetroid.curPosTiles.forEach((tilePos) => {
             // Set a flag if the shape is already on the left side of the screen
-            if ((tilePos) % game.tilesWide == 0) {
-                isLeftSide = true;
-            }
+            if ((tilePos) % game.tilesWide == 0) {isLeftSide = true;}
         })
         // If the shape is NOT on the left side of the screen, shift the shape one square left
         if (!isLeftSide) {
@@ -372,9 +352,7 @@ function initializeControls() {
         let curTetroid = game.shapeTemplates[game.curTemplateId];
         curTetroid.curPosTiles.forEach((tilePos) => {
             // Set a flag if the shape is already on the right side of the screen
-            if ((tilePos) % game.tilesWide == 9) {
-                isRightSide = true;
-            }
+            if ((tilePos) % game.tilesWide == 9) {isRightSide = true;}
         })
         // If the shape is NOT on the right side of the screen, shift the shape one square right
         if (!isRightSide) {
@@ -398,18 +376,12 @@ function initializeControls() {
     
         nextRot.forEach((tilePos) => {
             // Check if one of the new tiles is on the right side of the screen
-            if ((tilePos) % game.tilesWide == 9) {
-                isRightSide = true;
-            }
+            if ((tilePos) % game.tilesWide == 9) {isRightSide = true;}
             // Check if one of the new tiles is on the left side of the screen
-            else if ((tilePos) % game.tilesWide == 0) {
-                isLeftSide = true;
-            }
+            else if ((tilePos) % game.tilesWide == 0) {isLeftSide = true;}
             
             // Check if one of the new tiles would be off the bottom of the screen
-            if ((tilePos) >= (game.tilesWide * game.tilesHigh)) {
-                isOffBottom = true;
-            }
+            if ((tilePos) >= (game.tilesWide * game.tilesHigh)) {isOffBottom = true;}
 
             // Check if the next tile is occupied by checking the color
             if (isOffBottom == false) {
@@ -462,27 +434,17 @@ function initializeControls() {
 
     // Listeners to use keys to control shape actions
     document.addEventListener('keydown', (event) => {
-        switch (event.code) {
-            // Press left arrow to move tetroid left
-            case "ArrowLeft":
-                moveLeft();
-                break;
-            
-            // Rotate tetroid counterclockwise if the d key is pressed
-            case "KeyD":
-                rotate("CCW");
-                break;   
-            
-            // Rotate tetroid clockwise if the f key is pressed
-            case "KeyF":
-                rotate("CW");
-                break;    
+        // Press left arrow to move tetroid left
+        if (event.code == "ArrowLeft") {moveLeft();}
 
-            // Press right arrow to move tetroid right
-            case "ArrowRight":
-                moveRight();
-                break;
-        }
+        // Rotate tetroid counterclockwise if the d key is pressed
+        else if (event.code == "KeyD") {rotate("CCW");}
+
+        // Rotate tetroid clockwise if the f key is pressed
+        else if (event.code == "KeyF") {rotate("CW");}
+
+        // Press right arrow to move tetroid right
+        else if (event.code == "ArrowRight") {moveRight();}
     }) 
 
     // Create newGame button in score banner that will reset all stats and the board
@@ -507,7 +469,6 @@ function initializeControls() {
         }
     })
 }
-
 
 // Must call to initialize the game
 function setupGame() {
@@ -550,21 +511,10 @@ function playGame() {
         game.currentScore.update(rowsToClearLen);
         game.totalRowsCleared.update(rowsToClearLen);
         
-        switch(rowsToClearLen) {
-            case 1:
-                game.oneRowCleared.update(1);
-                break;
-            case 2:
-                game.twoRowsCleared.update(1);    
-                break;
-            case 3:
-                game.threeRowsCleared.update(1);    
-                break;
-            case 4:
-                game.fourRowsCleared.update(1);    
-                break;
-        }
-        
+        if (rowsToClearLen == 1) {game.oneRowCleared.update(1);}
+        else if (rowsToClearLen == 2) {game.twoRowsCleared.update(1);}
+        else if (rowsToClearLen == 3) {game.threeRowsCleared.update(1);}
+        else if (rowsToClearLen == 4) {game.fourRowsCleared.update(1);}
     }
 
     if (game.shapesGenerated == 1) {
@@ -594,9 +544,7 @@ function playGame() {
                     rowsToClear.push(rowNum);
                 }
             })
-            if (rowsToClear.length > 0) {
-                clearRows(rowsToClear);
-            }
+            if (rowsToClear.length > 0) {clearRows(rowsToClear);}
             generateShape();
         }
     }

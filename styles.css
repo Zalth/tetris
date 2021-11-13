@@ -43,7 +43,6 @@ body {
     flex-direction: column;
     background-color: yellow;
     padding: 5px;
-    z-index: -1;
 }
 .aside-right-bottom {
     display: flex;
@@ -53,7 +52,6 @@ body {
     padding: 5px;
     justify-content:space-evenly;
     align-items:center;
-    z-index: -1;
 }
 .gameArea {
     display: flex;
@@ -62,7 +60,6 @@ body {
     flex-direction: column;
     justify-content:start;
     align-items:center;
-    z-index: 2;
 }
 #gameGrid {
     display: grid;
