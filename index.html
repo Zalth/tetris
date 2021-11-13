@@ -10,47 +10,38 @@
     <title>Tetris</title>
 </head>
 <body>
-    <header class="statBanner">
-        <div>High Score: <span id="highScore"></span></div>
-        <div>Current Score: <span id="currentScore"></span></div>
-        <div>Level: <span id="level"></span></div>
-        <div>
+    <header>
+        <div class="buttons">
             <button id="newGame">New Game</button>
             <button id="play-pause">Play / Pause</button>
         </div>
+        <div class="scoreBanner">
+            <div>High Score: <span id="highScore"></span></div>
+            <div>Current Score: <span id="currentScore"></span></div>
+            <div>Level: <span id="level"></span></div>
+        </div>
+        <div class="statsBanner">
+            <div id="shapeStats"></div>
+            <div id="lineStats">
+                <div class="linesText">1 Line: <span id="oneRow"></span></div>
+                <div class="linesText">2 Lines: <span id="twoRow"></span></div>
+                <div class="linesText">3 Lines: <span id="threeRow"></span></div>
+                <div class="linesText">Tetris: <span id="tetris"></span></div>
+                <div class="linesText">Total: <span id="total"></span></div>
+            </div>
+        </div>
     </header>
     
-    <aside class="aside-left-controls">
-        <div class="controls">
-            <button id="rotateCCW" class="oval"><i class="fas fa-undo"></i></button>
-        </div>
-        <div class="controls">
-            <button id="moveLeft" class="oval"><i class="fas fa-arrow-left"></i></button>
-        </div> 
-    </aside>
-    <aside class="aside-left-stats">
-        <div id="shapeStats"></div>
+    <aside>
+        <button id="rotateCCW" class="oval"><i class="fas fa-undo"></i></button>
+        <button id="moveLeft" class="oval"><i class="fas fa-arrow-left"></i></button>
     </aside>
     <main class="gameArea">
         <div id="gameGrid"></div>
     </main>
-    <aside class="aside-right-stats">
-        <p>Lines Cleared</p>
-        <p>1 Line: <span id="oneRow"></span></p>
-        <p>2 Lines: <span id="twoRow"></span></p>
-        <p>3 Lines: <span id="threeRow"></span></p>
-        <p>Tetris: <span id="tetris"></span></p>
-        <div id="total-lines">
-            <p>Total Lines: <span id="total"></span></p>
-        </div>
-    </aside>  
-    <aside class="aside-right-controls">
-        <div class="controls">
-            <button id="rotateCW" class="oval"><i class="fas fa-redo"></i></button>
-        </div>
-        <div class="controls">
-            <button id="moveRight" class="oval"><i class="fas fa-arrow-right"></i></button>
-        </div>
+    <aside>
+        <button id="rotateCW" class="oval"><i class="fas fa-redo"></i></button>
+        <button id="moveRight" class="oval"><i class="fas fa-arrow-right"></i></button>
     </aside>
 </body>
 </html>

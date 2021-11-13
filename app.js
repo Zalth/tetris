@@ -10,8 +10,8 @@ const game = {
     shapeTemplates: [],     //Will store all tetroids and all orientations
     curTemplateId: '',      //The tetroid currently falling   
     fallInterval: {
-        initial: 900,
-        current: 900
+        initial: 800,
+        current: 800
     },     //How long it takes to drop tetroid 1 square in millisec
     filledSqInRow: [],       //Keeps track of how many squares are filled in each row
     scoreArr: [],
@@ -89,6 +89,7 @@ class ShapeStats extends Stats {
     constructor(htmlId, asideTemplate) {
         super(htmlId);
         this.asideTemplate = asideTemplate;
+        this.outerDisplaySelector = document.createElement('div');
         this.displaySelector = document.createElement('span');
         this.containerSelector = document.querySelector('#shapeStats');
     }
@@ -102,14 +103,15 @@ class ShapeStats extends Stats {
             gridTile.style.height = '10px';
             
             if (i == this.asideTemplate[0] || i == this.asideTemplate[1] || i == this.asideTemplate[2] || i == this.asideTemplate[3]) {
-                gridTile.style.backgroundColor = "blue";
+                gridTile.style.backgroundColor = "white";
                 gridTile.style.border = "1px solid black";
             }
             newDiv.append(gridTile);
         }
         this.displaySelector.id = this.htmlId;
         this.displaySelector.textContent = this.stat;
-        this.containerSelector.append(newDiv, this.displaySelector);
+        this.outerDisplaySelector.append(newDiv, this.displaySelector);
+        this.containerSelector.append(this.outerDisplaySelector)
     }
     update(adjustedBy) {
         this.stat += adjustedBy;
@@ -278,29 +280,30 @@ function initializeStats() {
     game.scoreArr.forEach(item => {item.initialize()});
 
     // Initialize all ShapeStats class objects
+    const lineShapeStats = new ShapeStats('lineShape', [1, 3, 5, 7]);  
     const lShapeStats = new ShapeStats('lShape', [3, 5, 6, 7]);
     const revLShapeStats = new ShapeStats('revLShape', [2, 3, 5, 7])
     const tShapeStats = new ShapeStats('tShape', [3, 4, 5, 7]);
-    const squareShapeStats = new ShapeStats('squareShape', [2, 4, 3, 5]);
     const sShapeStats = new ShapeStats('sShape', [3, 4, 5, 6]);
     const revSShapeStats = new ShapeStats('revSShape', [2, 4, 5, 7]);
-    const lineShapeStats = new ShapeStats('lineShape', [0, 2, 4, 6]);   
+    const squareShapeStats = new ShapeStats('squareShape', [2, 4, 3, 5]);
 
-    game.shapeStatArr = [lShapeStats, revLShapeStats, tShapeStats, squareShapeStats, sShapeStats, revSShapeStats, lineShapeStats];
+    game.shapeStatArr = [lineShapeStats, lShapeStats, revLShapeStats, tShapeStats, sShapeStats, revSShapeStats, squareShapeStats];
     game.shapeStatArr.forEach(item => {item.initialize()});
 }
 
 // Instantiate all members of Tetroid class
 function intializeTetroids() {
-    const lShape = new Tetroid(0, 'green', [3, 11, 12, 13], [1, 11, 21, 22], [11, 12, 13, 21], [1, 2, 12, 22]);
-    const revLShape = new Tetroid(1, 'yellow', [11, 12, 13, 1], [1, 11, 21, 2], [11, 12, 13, 23], [2, 12, 21, 22])
-    const tShape = new Tetroid(2, 'orange', [11, 12, 13, 2], [2, 12, 22, 13], [11, 12, 13, 22], [2, 12, 22, 11]);
-    const squareShape = new Tetroid(3, 'greenyellow', [1, 2, 11, 12], [1, 2, 11, 12], [1, 2, 11, 12], [1, 2, 11, 12]);
+    const lineShape = new Tetroid(0, 'blue', [0, 1, 2, 3], [2, 12, 22, 32], [0, 1, 2, 3], [2, 12, 22, 32]);
+    const lShape = new Tetroid(1, 'green', [3, 11, 12, 13], [1, 11, 21, 22], [11, 12, 13, 21], [1, 2, 12, 22]);
+    const revLShape = new Tetroid(2, 'yellow', [11, 12, 13, 1], [1, 11, 21, 2], [11, 12, 13, 23], [2, 12, 21, 22])
+    const tShape = new Tetroid(3, 'orange', [11, 12, 13, 2], [2, 12, 22, 13], [11, 12, 13, 22], [2, 12, 22, 11]);
     const sShape = new Tetroid(4, 'violet', [2, 3, 11, 12], [1, 11, 12, 22], [2, 3, 11, 12], [1, 11, 12, 22]);
     const revSShape = new Tetroid(5, 'darksalmon', [1, 2, 12, 13], [2, 11, 12, 21], [1, 2, 12, 13], [2, 11, 12, 21]);
-    const lineShape = new Tetroid(6, 'blue', [0, 1, 2, 3], [2, 12, 22, 32], [0, 1, 2, 3], [2, 12, 22, 32]);
+    const squareShape = new Tetroid(6, 'greenyellow', [1, 2, 11, 12], [1, 2, 11, 12], [1, 2, 11, 12], [1, 2, 11, 12]);
+    
 
-    game.shapeTemplates = [lShape, revLShape, tShape, squareShape, sShape, revSShape, lineShape];
+    game.shapeTemplates = [lineShape, lShape, revLShape, tShape, sShape, revSShape, squareShape];
 }
 
 // Instantiate play area
@@ -309,27 +312,29 @@ function initializePlayArea() {
     function adjustTileSize() {
         let screenWidth = window.innerWidth;
         let screenHeight = window.innerHeight;
-        let leftStats = document.querySelector('.aside-left-stats');
-        let rightStats = document.querySelector('.aside-right-stats');
+        let statsBanner = document.querySelector('.statsBanner');
+        let shapeStats = document.querySelector('#shapeStats');
         let adjustTileWidth = 0;
 
-        if (screenWidth < 500) {
-            leftStats.style.display = "none";
-            rightStats.style.display = "none";
-            adjustTileWidth = (screenWidth - 185) / game.tilesWide;
+        if (screenWidth < 650) {
+            statsBanner.style.flexDirection = "column";
+            shapeStats.style.borderRight = "none";
+            shapeStats.style.borderBottom = "black 1px solid";
+            adjustTileWidth = (screenWidth - 175) / game.tilesWide;
         }
         else {
-            leftStats.style.display = "flex";
-            rightStats.style.display = "flex";
-            adjustTileWidth = (screenWidth - 355) / game.tilesWide;
+            statsBanner.style.flexDirection = "row";
+            shapeStats.style.borderRight = "black 1px solid";
+            shapeStats.style.borderBottom = "none";
+            adjustTileWidth = (screenWidth - 175) / game.tilesWide;
         }
         
-        let checkTileHeight = adjustTileWidth * 15 + 80;
+        let checkTileHeight = adjustTileWidth * 15 + 150;
         if (checkTileHeight < screenHeight) {
             game.tileDimension = adjustTileWidth;
         }
         else {
-            adjustTileHeight = (screenHeight - 80) / game.tilesHigh;
+            adjustTileHeight = (screenHeight - 175) / game.tilesHigh;
             game.tileDimension = adjustTileHeight;
         }
         game.gridSelector = document.querySelector('#gameGrid');

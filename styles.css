@@ -1,53 +1,54 @@
 body {
     display:flex;
-    justify-content: center;
-    background-color: blue;
+    justify-content:space-around;
+    background-color: lightblue;
     flex-wrap: wrap;
     gap: 5px;
 }
 
-.statBanner {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background-color: red;
-    padding: 5px;
+header {
     width: 100%;
+}
+
+.buttons {
+    display: flex;
+    justify-content: space-around;
+}
+
+.scoreBanner {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 5px;
     font-size: smaller;
 }
 
-.aside-left-stats {
+.statsBanner {
     display: flex;
-    flex-direction: column;
-    background-color: yellow;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
     padding: 5px;
 }
-.aside-left-controls {
+
+#shapeStats {
     display: flex;
-    flex-direction: column;
-    padding: 5px;
-    justify-content:space-evenly;
-    align-items:center;
+    border-right: 1px solid black;
 }
-.aside-right-stats {
+
+#lineStats {
     display: flex;
-    flex-direction: column;
-    background-color: yellow;
-    padding: 5px;
+    padding-left: 10px;
+    justify-content: space-evenly;
 }
-.aside-right-controls {
-    display: flex;
-    flex-direction: column;
-    padding: 5px;
-    justify-content:space-evenly;
-    align-items:center;
-}
+
 .gameArea {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     justify-content:start;
-    align-items:center;
+    align-items:start;
 }
+
 #gameGrid {
     display: grid;
     background-color: black;
@@ -57,29 +58,36 @@ body {
     grid-template-rows: repeat(15, 1fr);
 }
 
-.asideShapes {
-    background-color: yellow;
-    display:grid;
-    grid-template-columns: 10px 10px 10px 10px;
-    grid-template-rows: 10px 10px;
-    grid-auto-flow:column;
+aside {
+    display: flex;
+    flex-direction: column;
+    padding: 5px;
+    justify-content:space-evenly;
+    align-items:center;
 }
 
-#shapeStats {
-    display: grid;
-    grid-template-columns: 48px 15px;
-    grid-template-rows: repeat(7, 24px);
-    row-gap: 10px;
+
+.asideShapes {
+    display:grid;
+    grid-template-columns: 12px 12px 12px 12px;
+    grid-template-rows: 12px 12px;
+    grid-auto-flow:column;
 }
 
 #shapeStats span {
     display: flex;
-    justify-content: center;
+    justify-content:space-evenly;
+    align-items: center;
+}
+
+#lineStats span {
+    display: flex;
+    justify-content:space-evenly;
     align-items: center;
 }
 
 .oval {
-    padding: 20px 20px;
+    padding: 25px 15px;
     border-radius: 50%;
     background-color: white;
     color: black;
@@ -87,16 +95,13 @@ body {
     
 }
 
-.controls {
-    margin-top: 20 px;
-}
-
-p {
+.linesText {
     font-size: smaller;
     margin: 2px;
+    padding-right: 5px;
+    width: 45px;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
 }
 
-#total-lines {
-    margin-top: 5px;
-    border-top: solid black 1px;
-}
