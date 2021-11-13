@@ -307,10 +307,10 @@ function intializeTetroids() {
 function initializePlayArea() {
     // Calculates and sets the width and height of playable area in px, including tile borders using the game object
     function adjustTileSize() {
-        const screenWidth = window.innerWidth;
-        const screenHeight = window.innerHeight;
-        const adjustTileWidth = (screenWidth - 355) / game.tilesWide;
-        const checkTileHeight = adjustTileWidth * 15 + 80;
+        let screenWidth = window.innerWidth;
+        let screenHeight = window.innerHeight;
+        let adjustTileWidth = (screenWidth - 355) / game.tilesWide;
+        let checkTileHeight = adjustTileWidth * 15 + 80;
         if (checkTileHeight < screenHeight) {
             game.tileDimension = adjustTileWidth;
         }
@@ -318,19 +318,19 @@ function initializePlayArea() {
             adjustTileHeight = (screenHeight - 80) / game.tilesHigh;
             game.tileDimension = adjustTileHeight;
         }
+        game.gridSelector = document.querySelector('#gameGrid');
+        game.gridWidth = (game.tilesWide * game.tileDimension + 2 * game.tilesWide) + 'px';
+        game.gridHeight = (game.tilesHigh * game.tileDimension + 2 * game.tilesHigh) + 'px';
+        game.gridSelector.style.width = game.gridWidth;
+        game.gridSelector.style.height = game.gridHeight;
     }
     
     adjustTileSize();
 
-    game.gridSelector = document.querySelector('#gameGrid');
-    game.gridWidth = (game.tilesWide * game.tileDimension + 2 * game.tilesWide) + 'px';
-    game.gridHeight = (game.tilesHigh * game.tileDimension + 2 * game.tilesHigh) + 'px';
-    game.gridSelector.style.width = game.gridWidth;
-    game.gridSelector.style.height = game.gridHeight;
-
     // Instantiates all game tiles with borders and adds to the tileArr
     for(let i = 0; i < game.tilesWide * game.tilesHigh; i++) {
         let gridTile = document.createElement('div');
+        gridTile.classList = "gridTile";
         gridTile.style.width = game.tileDimension + "px";
         gridTile.style.height = game.tileDimension + "px";
         gridTile.style.border = "1px solid white";
@@ -342,6 +342,15 @@ function initializePlayArea() {
     for(let i = 0; i < game.tilesHigh; i++) {
         game.filledSqInRow[i] = 0;
     }
+
+    window.addEventListener('resize', () => {
+        adjustTileSize();
+        let gridTiles = document.querySelectorAll('.gridTile');
+        gridTiles.forEach(tile => {
+            tile.style.width = game.tileDimension + "px";
+            tile.style.height = game.tileDimension + "px";
+        })
+    }) 
 }
 
 // Set up listeners for key and button functionality
