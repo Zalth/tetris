@@ -292,8 +292,8 @@ function initializeStats() {
 
 // Instantiate all members of Tetroid class
 function intializeTetroids() {
-    const lShape = new Tetroid(0, 'green', [3, 11, 12, 13], [1, 2, 12, 22], [11, 12, 13, 21], [1, 11, 21, 22]);
-    const revLShape = new Tetroid(1, 'yellow', [11, 12, 13, 1], [2, 12, 22, 3], [11, 12, 13, 23], [2, 12, 21, 22])
+    const lShape = new Tetroid(0, 'green', [3, 11, 12, 13], [1, 11, 21, 22], [11, 12, 13, 21], [1, 2, 12, 22]);
+    const revLShape = new Tetroid(1, 'yellow', [11, 12, 13, 1], [1, 11, 21, 2], [11, 12, 13, 23], [2, 12, 21, 22])
     const tShape = new Tetroid(2, 'orange', [11, 12, 13, 2], [2, 12, 22, 13], [11, 12, 13, 22], [2, 12, 22, 11]);
     const squareShape = new Tetroid(3, 'greenyellow', [1, 2, 11, 12], [1, 2, 11, 12], [1, 2, 11, 12], [1, 2, 11, 12]);
     const sShape = new Tetroid(4, 'violet', [2, 3, 11, 12], [1, 11, 12, 22], [2, 3, 11, 12], [1, 11, 12, 22]);
