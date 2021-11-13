@@ -99,12 +99,12 @@ class ShapeStats extends Stats {
         newDiv.style.height = '24px';
         for (let i = 0; i < 8; i++) {
             let gridTile = document.createElement('div');
-            gridTile.style.width = '10px';
-            gridTile.style.height = '10px';
+            gridTile.style.width = '8px';
+            gridTile.style.height = '8px';
             
             if (i == this.asideTemplate[0] || i == this.asideTemplate[1] || i == this.asideTemplate[2] || i == this.asideTemplate[3]) {
                 gridTile.style.backgroundColor = "white";
-                gridTile.style.border = "1px solid black";
+                gridTile.style.border = "thin solid black";
             }
             newDiv.append(gridTile);
         }
@@ -320,6 +320,8 @@ function initializePlayArea() {
             statsBanner.style.flexDirection = "column";
             shapeStats.style.borderRight = "none";
             shapeStats.style.borderBottom = "black 1px solid";
+            shapeStats.style.paddingBottom = "5px";
+            shapeStats.style.marginBottom = "5px"
             adjustTileWidth = (screenWidth - 175) / game.tilesWide;
         }
         else {
@@ -352,7 +354,6 @@ function initializePlayArea() {
         gridTile.classList = "gridTile";
         gridTile.style.width = game.tileDimension + "px";
         gridTile.style.height = game.tileDimension + "px";
-        gridTile.style.border = "1px solid white";
         gridTile.style.backgroundColor = 'black';
         game.gridSelector.append(gridTile);
         game.tileArr.push(gridTile);
@@ -476,8 +477,7 @@ function initializeControls() {
         rotate("CCW");
     })
 
-    // Listeners to use keys to control shape actions
-    document.addEventListener('keydown', (event) => {
+    function keyListeners(event) {
         // Press left arrow to move tetroid left
         if (event.code == "ArrowLeft") {moveLeft();}
 
@@ -489,7 +489,10 @@ function initializeControls() {
 
         // Press right arrow to move tetroid right
         else if (event.code == "ArrowRight") {moveRight();}
-    }) 
+    }
+    
+    // Listeners to use keys to control shape actions
+    document.addEventListener('keydown', keyListeners) 
 
     // Create newGame button in score banner that will reset all stats and the board
     let newGameButton = document.querySelector('#newGame');
@@ -501,14 +504,24 @@ function initializeControls() {
     
     // Create play/pause button in score banner
     let playPauseButton = document.querySelector('#play-pause');
-    playPauseButton.addEventListener('click', () => {
+    playPauseButton.addEventListener('click', (event) => {
         if (game.pauseFlag) {
             playPauseButton.blur();
+            moveRightButton.disabled = false;
+            moveLeftButton.disabled = false;
+            rotateCCWButton.disabled = false;
+            rotateCWButton.disabled = false;
+            document.addEventListener('keydown', keyListeners)
             game.gravity = setInterval(playGame, game.fallInterval.current);
             game.pauseFlag = false;
         }
         else {
             clearInterval(game.gravity);
+            moveRightButton.disabled = true;
+            moveLeftButton.disabled = true;
+            rotateCCWButton.disabled = true;
+            rotateCWButton.disabled = true;
+            document.removeEventListener('keydown', keyListeners)
             game.pauseFlag = true;
         }
     })

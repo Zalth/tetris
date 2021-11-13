@@ -10,6 +10,10 @@ header {
     width: 100%;
 }
 
+button {
+    border-radius: 5px;
+}
+
 .buttons {
     display: flex;
     justify-content: space-around;
@@ -28,6 +32,7 @@ header {
     flex-direction: row;
     justify-content: center;
     align-items: center;
+    font-size: smaller;
     padding: 5px;
 }
 
@@ -51,8 +56,8 @@ header {
 
 #gameGrid {
     display: grid;
-    background-color: black;
-    color: white;
+    background-color: white;
+    gap: 1px;
     display: inline-grid;
     grid-template-columns: repeat(10, 1fr);
     grid-template-rows: repeat(15, 1fr);
@@ -69,8 +74,8 @@ aside {
 
 .asideShapes {
     display:grid;
-    grid-template-columns: 12px 12px 12px 12px;
-    grid-template-rows: 12px 12px;
+    grid-template-columns: 10px 10px 10px 10px;
+    grid-template-rows: 10px 10px;
     grid-auto-flow:column;
 }
 
