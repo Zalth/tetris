@@ -121,7 +121,7 @@ aside {
     height: 100%;
     overflow: hidden;
     background-color: rgb(173, 216, 230);
-    background-color: rgba(173, 216, 230, 0.5)
+    background-color: rgba(173, 216, 230, 0.4)
 }
 
 .modal-content {

@@ -165,7 +165,21 @@ class Tetroid {
         }
         return canShift;
     }
-    
+
+    // Ends the game
+    gameOver() {
+        game.currentScore.setHighestScore();
+        clearInterval(game.gravity);
+        game.pauseFlag = true;
+        console.log(game.currentScore)
+        document.querySelector("#gameScore").textContent = game.currentScore.stat;
+        document.querySelector("#userHighScore").textContent = game.highestScore.stat;
+        document.querySelector("#gameMaxLevel").textContent = game.level.stat;
+        document.querySelector("#gameTotalLines").textContent = game.totalRowsCleared.stat;
+        showModal(document.querySelector("#gameOverModal"));
+
+    }
+
     // Creates each new tetroid
     initialPos() {
         this.curOrientation = 0;
@@ -185,10 +199,7 @@ class Tetroid {
                 this.curPosTiles[index] = tilePos + shiftBy;
                 game.tileArr[tilePos + shiftBy].style.backgroundColor = this.color;
             })
-            game.currentScore.setHighestScore();
-            clearInterval(game.gravity);
-            game.pauseFlag = true;
-            console.log("Game Over");
+            this.gameOver();
         }
     }
     
@@ -382,18 +393,18 @@ function initializePlayArea() {
 }
 
 // Display modal
-function showModal() {
-    game.modalSelector.style.display = "block";
+function showModal(modalSelector) {
+    modalSelector.style.display = "block";
     game.modalContentSelector.style.height = game.gridHeight;
     window.onclick = function(event) {
-        if (event.target == game.modalSelector) hideModal();
+        if (event.target == modalSelector) hideModal(modalSelector);
     }
-    document.querySelector(".close").addEventListener('click', hideModal)
+    document.querySelector(".close").addEventListener('click', () => {hideModal(modalSelector)})
 }
 
 // Hide modal
-function hideModal() {
-    game.modalSelector.style.display = "none";
+function hideModal(modalSelector) {
+    modalSelector.style.display = "none";
 }
 
 // Set up listeners for key and button functionality
@@ -546,7 +557,7 @@ function initializeControls() {
             rotateCWButton.disabled = true;
             document.removeEventListener('keydown', keyListeners)
             game.pauseFlag = true;
-            showModal();
+            showModal(game.modalSelector);
         }
     })
 }
@@ -557,7 +568,7 @@ function setupGame() {
     initializeStats();
     intializeTetroids();
     initializeControls();
-    showModal();
+    showModal(game.modalSelector);
 }
 
 function playGame() {
