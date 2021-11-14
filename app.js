@@ -1,6 +1,6 @@
 // Set tile size and dimensions of the game area
 const game = {
-    tileDimension: 28,      //Tiles are 60 px wide
+    tileDimension: 28,      //Tiles are 28 px wide initially
     tilesWide: 10,          //10 tiles per row
     tilesHigh: 15,          //15 rows
     gridWidth: 0,           //Will update on setupGame(game)
@@ -28,7 +28,10 @@ const game = {
     fourRowsCleared: '',
     totalRowsCleared: '',
     level: '',
-    pauseFlag: true
+    pauseFlag: true,
+    isScreenSmaller: false,
+    modalSelector: '',
+    modalContentSelector: ''
 
 }
 // Class to hold information used in calculating the score
@@ -61,7 +64,7 @@ class LineStats extends Stats {
         this.displaySelector.textContent = this.stat;
         game.level.stat = 1 + Math.floor(game.totalRowsCleared.stat / 10);
         game.level.displaySelector.textContent = game.level.stat;
-        game.fallInterval.current = game.fallInterval.initial * Math.pow(0.9, (game.level.stat - 1));
+        game.fallInterval.current = game.fallInterval.initial * Math.pow(0.85, (game.level.stat - 1));
     }
 }
 
@@ -77,7 +80,7 @@ class Scores extends Stats {
         }
     }
     update(rowsClearedThisMove) {
-        this.stat += parseInt(100 * rowsClearedThisMove * (1 + (rowsClearedThisMove - 1) * 0.1 + 0.5 * game.level.stat));
+        this.stat += parseInt(100 * rowsClearedThisMove * (1 + (rowsClearedThisMove - 1) * 0.1 + 0.05 * game.level.stat));
         game.currentScore.stat = this.stat;
         this.displaySelector.textContent = this.stat;
         this.setHighestScore();
@@ -308,6 +311,8 @@ function intializeTetroids() {
 
 // Instantiate play area
 function initializePlayArea() {
+    game.modalSelector = document.querySelector("#pauseModal");
+    game.modalContentSelector = document.querySelector(".modal-content")
     // Calculates and sets the width and height of playable area in px, including tile borders using the game object
     function adjustTileSize() {
         let screenWidth = window.innerWidth;
@@ -317,6 +322,7 @@ function initializePlayArea() {
         let adjustTileWidth = 0;
 
         if (screenWidth < 650) {
+            game.isScreenSmaller = true;
             statsBanner.style.flexDirection = "column";
             shapeStats.style.borderRight = "none";
             shapeStats.style.borderBottom = "black 1px solid";
@@ -325,6 +331,7 @@ function initializePlayArea() {
             adjustTileWidth = (screenWidth - 175) / game.tilesWide;
         }
         else {
+            game.isScreenSmaller = false;
             statsBanner.style.flexDirection = "row";
             shapeStats.style.borderRight = "black 1px solid";
             shapeStats.style.borderBottom = "none";
@@ -344,11 +351,12 @@ function initializePlayArea() {
         game.gridHeight = (game.tilesHigh * game.tileDimension + 2 * game.tilesHigh) + 'px';
         game.gridSelector.style.width = game.gridWidth;
         game.gridSelector.style.height = game.gridHeight;
+        game.modalContentSelector.style.height = game.gridHeight;
     }
     
     adjustTileSize();
 
-    // Instantiates all game tiles with borders and adds to the tileArr
+    // Instantiates all game tiles and adds to the tileArr
     for(let i = 0; i < game.tilesWide * game.tilesHigh; i++) {
         let gridTile = document.createElement('div');
         gridTile.classList = "gridTile";
@@ -371,6 +379,21 @@ function initializePlayArea() {
             tile.style.height = game.tileDimension + "px";
         })
     }) 
+}
+
+// Display modal
+function showModal() {
+    game.modalSelector.style.display = "block";
+    game.modalContentSelector.style.height = game.gridHeight;
+    window.onclick = function(event) {
+        if (event.target == game.modalSelector) hideModal();
+    }
+    document.querySelector(".close").addEventListener('click', hideModal)
+}
+
+// Hide modal
+function hideModal() {
+    game.modalSelector.style.display = "none";
 }
 
 // Set up listeners for key and button functionality
@@ -523,6 +546,7 @@ function initializeControls() {
             rotateCWButton.disabled = true;
             document.removeEventListener('keydown', keyListeners)
             game.pauseFlag = true;
+            showModal();
         }
     })
 }
@@ -533,6 +557,7 @@ function setupGame() {
     initializeStats();
     intializeTetroids();
     initializeControls();
+    showModal();
 }
 
 function playGame() {
