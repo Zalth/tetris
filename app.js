@@ -31,7 +31,12 @@ const game = {
     isScreenSmaller: false,
     gameControlSelectors: [],
     modalSelector: '',
-    modalContentSelector: ''
+    modalContentSelector: '',
+    instructionModalSelector: '',
+    instructionModalContent: '',
+    buttonControlSelectors: [],
+    gameOverContentSelector: '',
+    gameOverSelector: ''
 }
 
 // Class to hold information used in calculating the score
@@ -318,7 +323,12 @@ function intializeTetroids() {
 // Instantiate play area
 function initializePlayArea() {
     game.modalSelector = document.querySelector("#pauseModal");
-    game.modalContentSelector = document.querySelector(".modal-content")
+    game.modalContentSelector = document.querySelector(".modal-content");
+    game.instructionModalSelector = document.querySelector("#instructionModal");
+    game.instructionModalContent = document.querySelector(".instructionModalContent");
+    game.gameOverSelector = document.querySelector("#gameOverModal");
+    game.gameOverContentSelector = document.querySelector(".gameOverModalContent");
+
     // Calculates and sets the width and height of playable area in px, including tile borders using the game object
     function adjustTileSize() {
         let screenWidth = window.innerWidth;
@@ -388,18 +398,25 @@ function initializePlayArea() {
 }
 
 // Display modal
-function showModal(modalSelector) {
+function showModal(modalSelector, modalCloseSelector, pause = false) {
     modalSelector.style.display = "block";
     game.modalContentSelector.style.height = game.gridHeight;
     window.onclick = function(event) {
         if (event.target == modalSelector) hideModal(modalSelector);
     }
-    document.querySelector(".close").addEventListener('click', () => {hideModal(modalSelector)})
+    modalCloseSelector.addEventListener('click', () => {hideModal(modalSelector, pause)})
 }
 
 // Hide modal
-function hideModal(modalSelector) {
+function hideModal(modalSelector, pause) {
     modalSelector.style.display = "none";
+    if (game.pauseFlag == true) {
+        game.buttonControlSelectors.forEach(selector => {selector.disabled = false});
+        //document.addEventListener('keydown', keyListeners)
+        clearInterval(game.gravity);
+        game.gravity = setInterval(playGame, game.fallInterval.current);
+        game.pauseFlag = false;
+    }
 }
 
 // Ends the game
@@ -414,136 +431,140 @@ function gameOver() {
     game.tileArr.forEach((value, index) => {
         game.tileArr[index].style.backgroundColor = 'black';
     })
-    showModal(document.querySelector("#gameOverModal"));
+    showModal(document.querySelector("#gameOverModal"),document.querySelector(".gameOverModalClose"));
 }
 
-// Set up listeners for key and button functionality
-function initializeControls() {
-    // Logic for arrow and button to move left
-    function moveLeft() {
-        let isLeftSide = false;
-        let curTetroid = game.shapeTemplates[game.curTemplateId];
-        curTetroid.curPosTiles.forEach((tilePos) => {
-            // Set a flag if the shape is already on the left side of the screen
-            if ((tilePos) % game.tilesWide == 0) {isLeftSide = true;}
-        })
-        // If the shape is NOT on the left side of the screen, shift the shape one square left
-        if (!isLeftSide) {
-            if (curTetroid.canMoveTetroid(-1)) {
-                game.shapeTemplates[game.curTemplateId].updatePos();
-            }   
-        }
+// Logic for arrow and button to move left
+function moveLeft() {
+    let isLeftSide = false;
+    let curTetroid = game.shapeTemplates[game.curTemplateId];
+    curTetroid.curPosTiles.forEach((tilePos) => {
+        // Set a flag if the shape is already on the left side of the screen
+        if ((tilePos) % game.tilesWide == 0) {isLeftSide = true;}
+    })
+    // If the shape is NOT on the left side of the screen, shift the shape one square left
+    if (!isLeftSide) {
+        if (curTetroid.canMoveTetroid(-1)) {
+            game.shapeTemplates[game.curTemplateId].updatePos();
+        }   
     }
+}
 
-    // Logic for arrow and button to move right
-    function moveRight() {
-        let isRightSide = false;
-        let curTetroid = game.shapeTemplates[game.curTemplateId];
-        curTetroid.curPosTiles.forEach((tilePos) => {
-            // Set a flag if the shape is already on the right side of the screen
-            if ((tilePos) % game.tilesWide == 9) {isRightSide = true;}
-        })
-        // If the shape is NOT on the right side of the screen, shift the shape one square right
-        if (!isRightSide) {
-            if (curTetroid.canMoveTetroid(1)) {
-                game.shapeTemplates[game.curTemplateId].updatePos();
-            }   
-        }
+// Logic for arrow and button to move right
+function moveRight() {
+    let isRightSide = false;
+    let curTetroid = game.shapeTemplates[game.curTemplateId];
+    curTetroid.curPosTiles.forEach((tilePos) => {
+        // Set a flag if the shape is already on the right side of the screen
+        if ((tilePos) % game.tilesWide == 9) {isRightSide = true;}
+    })
+    // If the shape is NOT on the right side of the screen, shift the shape one square right
+    if (!isRightSide) {
+        if (curTetroid.canMoveTetroid(1)) {
+            game.shapeTemplates[game.curTemplateId].updatePos();
+        }   
     }
+}
 
-    // Logic for rotation of tetroid
-    // direction = "CW" for clockwise rotation
-    // direction = "CCW" for counter-clockwise rotation
-    function rotate(direction) {
-        let canShift = true;
-        let isLeftSide = false;
-        let isRightSide = false;
-        let isOffBottom = false;
-        let isNextTileOccupied = false;
-        let curTetroid = game.shapeTemplates[game.curTemplateId];
-        let nextRot = curTetroid.nextRotation(direction);
-    
-        nextRot.forEach((tilePos) => {
-            // Check if one of the new tiles is on the right side of the screen
-            if ((tilePos) % game.tilesWide == 9) {isRightSide = true;}
-            // Check if one of the new tiles is on the left side of the screen
-            else if ((tilePos) % game.tilesWide == 0) {isLeftSide = true;}
-            
-            // Check if one of the new tiles would be off the bottom of the screen
-            if ((tilePos) >= (game.tilesWide * game.tilesHigh)) {isOffBottom = true;}
+// Logic for rotation of tetroid
+// direction = "CW" for clockwise rotation
+// direction = "CCW" for counter-clockwise rotation
+function rotate(direction) {
+    let canShift = true;
+    let isLeftSide = false;
+    let isRightSide = false;
+    let isOffBottom = false;
+    let isNextTileOccupied = false;
+    let curTetroid = game.shapeTemplates[game.curTemplateId];
+    let nextRot = curTetroid.nextRotation(direction);
 
-            // Check if the next tile is occupied by checking the color
-            if (isOffBottom == false) {
-                if (game.tileArr[tilePos].style.backgroundColor == 'gray') {
-                    isNextTileOccupied = true;
-                }
-            }
-
-            // Check for shape looping from one side to the other OR if the next tile is occupied
-            //      OR if the tile would go off the screen on the bottom
-            // If true, then the shape can't rotate
-            if ((isLeftSide && isRightSide) || isNextTileOccupied || isOffBottom) {
-                canShift = false;
-            }
-        })
+    nextRot.forEach((tilePos) => {
+        // Check if one of the new tiles is on the right side of the screen
+        if ((tilePos) % game.tilesWide == 9) {isRightSide = true;}
+        // Check if one of the new tiles is on the left side of the screen
+        else if ((tilePos) % game.tilesWide == 0) {isLeftSide = true;}
         
-        // If the flag is true, then the shape can rotate
-        if (canShift) {
-            game.shapeTemplates[game.curTemplateId].rotateTetroid(direction);
+        // Check if one of the new tiles would be off the bottom of the screen
+        if ((tilePos) >= (game.tilesWide * game.tilesHigh)) {isOffBottom = true;}
+
+        // Check if the next tile is occupied by checking the color
+        if (isOffBottom == false) {
+            if (game.tileArr[tilePos].style.backgroundColor == 'gray') {
+                isNextTileOccupied = true;
+            }
         }
-    }
 
-    // Left button listener
-    let moveLeftButton = document.querySelector('#moveLeft');
-    moveLeftButton.addEventListener('click', () => {
-        moveLeftButton.blur();
-        moveLeft();
+        // Check for shape looping from one side to the other OR if the next tile is occupied
+        //      OR if the tile would go off the screen on the bottom
+        // If true, then the shape can't rotate
+        if ((isLeftSide && isRightSide) || isNextTileOccupied || isOffBottom) {
+            canShift = false;
+        }
     })
-
-    // Right button listener
-    let moveRightButton = document.querySelector('#moveRight');
-    moveRightButton.addEventListener('click', () => {
-        moveRightButton.blur();
-        moveRight();
-    })
-
-    // Clockwise button listener
-    let rotateCWButton = document.querySelector('#rotateCW');
-    rotateCWButton.addEventListener('click', () => {
-        rotateCWButton.blur();
-        rotate("CW");
-    })
-
-    // Counter-clockwise button listener
-    let rotateCCWButton = document.querySelector('#rotateCCW');
-    rotateCCWButton.addEventListener('click', () => {
-        rotateCCWButton.blur();
-        rotate("CCW");
-    })
-
-    function keyListeners(event) {
-        // Press left arrow to move tetroid left
-        if (event.code == "ArrowLeft") {moveLeft();}
-
-        // Rotate tetroid counterclockwise if the d key is pressed
-        else if (event.code == "KeyD") {rotate("CCW");}
-
-        // Rotate tetroid clockwise if the f key is pressed
-        else if (event.code == "KeyF") {rotate("CW");}
-
-        // Press right arrow to move tetroid right
-        else if (event.code == "ArrowRight") {moveRight();}
-    }
     
-    // Listeners to use keys to control shape actions
-    document.addEventListener('keydown', keyListeners) 
+    // If the flag is true, then the shape can rotate
+    if (canShift) {
+        game.shapeTemplates[game.curTemplateId].rotateTetroid(direction);
+    }
+}
 
+// Left button listener
+let moveLeftButton = document.querySelector('#moveLeft');
+moveLeftButton.addEventListener('click', () => {
+    moveLeftButton.blur();
+    moveLeft();
+})
+
+// Right button listener
+let moveRightButton = document.querySelector('#moveRight');
+moveRightButton.addEventListener('click', () => {
+    moveRightButton.blur();
+    moveRight();
+})
+
+// Clockwise button listener
+let rotateCWButton = document.querySelector('#rotateCW');
+rotateCWButton.addEventListener('click', () => {
+    rotateCWButton.blur();
+    rotate("CW");
+})
+
+// Counter-clockwise button listener
+let rotateCCWButton = document.querySelector('#rotateCCW');
+rotateCCWButton.addEventListener('click', () => {
+    rotateCCWButton.blur();
+    rotate("CCW");
+})
+
+game.buttonControlSelectors = [moveLeftButton, moveRightButton, rotateCWButton, rotateCCWButton];
+
+function keyListeners(event) {
+    // Press left arrow to move tetroid left
+    if (event.code == "ArrowLeft") {moveLeft();}
+
+    // Rotate tetroid counterclockwise if the d key is pressed
+    else if (event.code == "KeyD") {rotate("CCW");}
+
+    // Rotate tetroid clockwise if the f key is pressed
+    else if (event.code == "KeyF") {rotate("CW");}
+
+    // Press right arrow to move tetroid right
+    else if (event.code == "ArrowRight") {moveRight();}
+}
+
+// Listeners to use keys to control shape actions
+document.addEventListener('keydown', keyListeners)
+
+
+function initializeHeaderButtons () {
     // Create newGame button in score banner that will reset all stats and the board
     let newGameButton = document.querySelector('#newGame');
     newGameButton.addEventListener('click', () => {
         newGameButton.blur();
         resetGame();
+        clearInterval(game.gravity);
         game.gravity = setInterval(playGame, game.fallInterval.current);
+        game.pauseFlag = false;
     })
     
     // Create play/pause button in score banner, toggling game.pauseFlag
@@ -551,23 +572,26 @@ function initializeControls() {
     playPauseButton.addEventListener('click', (event) => {
         if (game.pauseFlag) {
             playPauseButton.blur();
-            moveRightButton.disabled = false;
-            moveLeftButton.disabled = false;
-            rotateCCWButton.disabled = false;
-            rotateCWButton.disabled = false;
+            game.buttonControlSelectors.forEach(selector => {selector.disabled = false});
             document.addEventListener('keydown', keyListeners)
+            clearInterval(game.gravity);
             game.gravity = setInterval(playGame, game.fallInterval.current);
             game.pauseFlag = false;
         }
         else {
             clearInterval(game.gravity);
-            moveRightButton.disabled = true;
-            moveLeftButton.disabled = true;
-            rotateCCWButton.disabled = true;
-            rotateCWButton.disabled = true;
+            game.buttonControlSelectors.forEach(selector => {selector.disabled = true});
             document.removeEventListener('keydown', keyListeners)
             game.pauseFlag = true;
-            showModal(game.modalSelector);
+            showModal(game.modalSelector, document.querySelector(".pauseModalClose"), true);
+        }
+    })
+
+    // Creates Instructions button to display a modal
+    let instructionsButton = document.querySelector("#instructions")
+    instructionsButton.addEventListener('click', () => {
+        if (game.pauseFlag == true) {
+            showModal(game.instructionModalSelector, document.querySelector(".instructionModalClose"));
         }
     })
 }
@@ -577,8 +601,7 @@ function setupGame() {
     initializePlayArea();
     initializeStats();
     intializeTetroids();
-    initializeControls();
-    showModal(game.modalSelector);
+    initializeHeaderButtons();
 }
 
 function playGame() {
@@ -679,5 +702,4 @@ function resetGame() {
     game.level.update(0);
     game.currentScore.reset();
     game.shapeStatArr.forEach(item => {item.reset()});
-    game.pauseFlag = false;
 }
