@@ -18,7 +18,6 @@ const game = {
     lineArr: [],
     shapeStatArr: [],
     gravity: '',
-    newShape: true,
     shapesGenerated: 1,
     currentScore: '',
     highestScore: '',
@@ -32,8 +31,8 @@ const game = {
     isScreenSmaller: false,
     modalSelector: '',
     modalContentSelector: ''
-
 }
+
 // Class to hold information used in calculating the score
 class Stats {
     constructor(htmlId) {
@@ -62,13 +61,16 @@ class LineStats extends Stats {
     update(adjustedBy) {
         this.stat += adjustedBy;
         this.displaySelector.textContent = this.stat;
+        // The level is equal to 1 plus every 10 rows that have been cleared
         game.level.stat = 1 + Math.floor(game.totalRowsCleared.stat / 10);
         game.level.displaySelector.textContent = game.level.stat;
+        // Set the fall rate to the number of ms equal to the the initial value times 85% for each additional level beyond the first
         game.fallInterval.current = game.fallInterval.initial * Math.pow(0.85, (game.level.stat - 1));
     }
 }
 
 // Extends Stats class for current and highest score
+// Score values will be displayed in the header of the page
 class Scores extends Stats {
     constructor(htmlId) {
         super(htmlId);
@@ -80,6 +82,11 @@ class Scores extends Stats {
         }
     }
     update(rowsClearedThisMove) {
+        // The score for rows cleared depends on the number of rows cleared that move, and the level
+        // 1 line = 100 + 5 / level
+        // 2 lines = 220 + 10 / level
+        // 3 lines = 360 + 15 / level
+        // 4 lines = 520 + 20 / level
         this.stat += parseInt(100 * rowsClearedThisMove * (1 + (rowsClearedThisMove - 1) * 0.1 + 0.05 * game.level.stat));
         game.currentScore.stat = this.stat;
         this.displaySelector.textContent = this.stat;
@@ -88,6 +95,8 @@ class Scores extends Stats {
 }
 
 // Extends Stats class for how many of a specific tetroid has been spawned
+// The shapes will be displayed in the header of the page
+// The number of each specific shape will be updated when the shape is generated
 class ShapeStats extends Stats {
     constructor(htmlId, asideTemplate) {
         super(htmlId);
@@ -98,7 +107,7 @@ class ShapeStats extends Stats {
     }
     initialize() {
         let newDiv = document.createElement('div');
-        newDiv.className = "asideShapes";
+        newDiv.className = "headerShapes";
         newDiv.style.height = '24px';
         for (let i = 0; i < 8; i++) {
             let gridTile = document.createElement('div');
@@ -124,6 +133,7 @@ class ShapeStats extends Stats {
 }
 
 // Class for each individual tetroid shape and rotational orientation
+// There is a maximum of 4 rotational orientations for each shape, so each shape needs 4 versions passed in
 class Tetroid {
     constructor(templateId, color, orientation0, orientation1, orientation2, orientation3) {
         this.id = templateId;
@@ -171,16 +181,14 @@ class Tetroid {
         game.currentScore.setHighestScore();
         clearInterval(game.gravity);
         game.pauseFlag = true;
-        console.log(game.currentScore)
         document.querySelector("#gameScore").textContent = game.currentScore.stat;
         document.querySelector("#userHighScore").textContent = game.highestScore.stat;
         document.querySelector("#gameMaxLevel").textContent = game.level.stat;
         document.querySelector("#gameTotalLines").textContent = game.totalRowsCleared.stat;
         showModal(document.querySelector("#gameOverModal"));
-
     }
 
-    // Creates each new tetroid
+    // Creates each new tetroid, shifting the base template to the middle columns
     initialPos() {
         this.curOrientation = 0;
         let shiftBy = 3;
@@ -191,7 +199,6 @@ class Tetroid {
                 this.curPosTiles[index] = tilePos + shiftBy;
                 game.tileArr[tilePos + shiftBy].style.backgroundColor = this.color;
             })
-            game.newShape = true;
         }
         else {
             this.curPosTiles = this.vers0.slice();
@@ -217,7 +224,6 @@ class Tetroid {
         else if (versionNumber == 1) {return this.vers1.slice();}
         else if (versionNumber == 2) {return this.vers2.slice();}
         else if (versionNumber == 3) {return this.vers3.slice();}
-        else {console.log("Error in retrieving Tetroid Version");}
     }
 
     // Creates array of next rotation
@@ -536,7 +542,7 @@ function initializeControls() {
         game.gravity = setInterval(playGame, game.fallInterval.current);
     })
     
-    // Create play/pause button in score banner
+    // Create play/pause button in score banner, toggling game.pauseFlag
     let playPauseButton = document.querySelector('#play-pause');
     playPauseButton.addEventListener('click', (event) => {
         if (game.pauseFlag) {
@@ -579,65 +585,74 @@ function playGame() {
         game.shapeStatArr[game.curTemplateId].update(1);
     }
 
-    function clearRows(rowsToClear) {
-        let rowsToClearLen = rowsToClear.length;
-        updateScoreStats(rowsToClearLen);
-        for (let i = 0; i < rowsToClearLen; i++) {
-            let row = rowsToClear.pop();
-            moveRowsDown(row, i + 1);
-        }
-    }
-
-    function moveRowsDown(row, rowsShifted) {
-        let rowStartShift = row + rowsShifted - 1;
-        for (let i = rowStartShift; i > 0; i--) {
-            for (let j = 0; j < 10; j++) {
-                game.tileArr[10 * i + j].style.backgroundColor = game.tileArr[10 * (i - 1) + j].style.backgroundColor;
+    // Checks if all tiles in a row are occupied by checking the background color
+    // rowNum is 0 through game.tilesHigh 
+    function canClearRow(rowNum) {
+        let filledTiles = 0;
+        for (let i = 0; i < game.tilesWide; i++) {
+            if (game.tileArr[rowNum * 10 + i].style.backgroundColor != "black") {
+                filledTiles += 1;
             }
         }
-        for (let k = game.filledSqInRow.length - 1; k > 0; k--) {
-            game.filledSqInRow[k] = game.filledSqInRow[k - 1];
+
+        if (filledTiles == game.tilesWide) {return true;};
+        return false;
+    }
+
+    // Uses a rowNum as a starting position to clear and shift all other rows down by one
+    function moveRowsDown(rowNum) {
+        for (let row = rowNum; row > 0; row--) {
+            for (let tileInRow = 0; tileInRow < game.tilesWide; tileInRow++) {
+                game.tileArr[10 * row + tileInRow].style.backgroundColor = game.tileArr[10 * (row - 1) + tileInRow].style.backgroundColor;
+            }
         }
     }
 
-    function updateScoreStats(rowsToClearLen) {
-        game.currentScore.update(rowsToClearLen);
-        game.totalRowsCleared.update(rowsToClearLen);
+    // Updates the score and score stats based on the number of rows cleared in that drop of a shape
+    function updateScoreStats(numRowsCleared) {
+        game.currentScore.update(numRowsCleared);
+        game.totalRowsCleared.update(numRowsCleared);
         
-        if (rowsToClearLen == 1) {game.oneRowCleared.update(1);}
-        else if (rowsToClearLen == 2) {game.twoRowsCleared.update(1);}
-        else if (rowsToClearLen == 3) {game.threeRowsCleared.update(1);}
-        else if (rowsToClearLen == 4) {game.fourRowsCleared.update(1);}
+        if (numRowsCleared == 1) {game.oneRowCleared.update(1);}
+        else if (numRowsCleared == 2) {game.twoRowsCleared.update(1);}
+        else if (numRowsCleared == 3) {game.threeRowsCleared.update(1);}
+        else if (numRowsCleared == 4) {game.fourRowsCleared.update(1);}
     }
 
+    // Starts the game on the first turn by generating a shape and displaying it
     if (game.shapesGenerated == 1) {
         generateShape();
         let curTetroid = game.shapeTemplates[game.curTemplateId];
         curTetroid.updatePos();
     }
+    // After the first shape of the game is generated do the following
     else {
+        // Determine what shapeTemplate is being used and determine if is is valid to move the shape down one row
         let curTetroid = game.shapeTemplates[game.curTemplateId];
         let canShift = curTetroid.canMoveTetroid(10);
-        if (game.newShape && game.filledSqInRow[2] == 0) {
-            curTetroid.curPosTiles = curTetroid.nextPosTiles.slice();
-            curTetroid.updatePos();
-            game.newShape = false;
-        }
-        else if(canShift) {
+
+        // If the shape isn't newly generated and it can be shifted, then update the position
+        if(canShift) {
             curTetroid.curPosTiles = curTetroid.nextPosTiles.slice();
             curTetroid.updatePos();
         }
+        // If the shape can NOT be shifted...
         else {
-            let rowsToClear = []
+            let numRowsCleared = 0;
+            // Set the shape that is in its final position to be gray
             curTetroid.curPosTiles.forEach(tilePos => {
                 game.tileArr[tilePos].style.backgroundColor = 'gray';
-                let rowNum = Math.floor(tilePos / game.tilesWide);
-                game.filledSqInRow[rowNum] += 1;
-                if (game.filledSqInRow[rowNum] >= game.tilesWide) {
-                    rowsToClear.push(rowNum);
-                }
             })
-            if (rowsToClear.length > 0) {clearRows(rowsToClear);}
+    
+            // Check if the row is full, can be cleared, shifting the rows down
+            curTetroid.curPosTiles.forEach(tilePos => {
+                let rowNum = Math.floor(tilePos / game.tilesWide);
+                if (canClearRow(rowNum)) {
+                    moveRowsDown(rowNum);
+                    numRowsCleared += 1;
+                }    
+            })
+            updateScoreStats(numRowsCleared); 
             generateShape();
         }
     }
