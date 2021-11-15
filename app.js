@@ -29,6 +29,7 @@ const game = {
     level: '',
     pauseFlag: true,
     isScreenSmaller: false,
+    gameControlSelectors: [],
     modalSelector: '',
     modalContentSelector: ''
 }
@@ -176,18 +177,6 @@ class Tetroid {
         return canShift;
     }
 
-    // Ends the game
-    gameOver() {
-        game.currentScore.setHighestScore();
-        clearInterval(game.gravity);
-        game.pauseFlag = true;
-        document.querySelector("#gameScore").textContent = game.currentScore.stat;
-        document.querySelector("#userHighScore").textContent = game.highestScore.stat;
-        document.querySelector("#gameMaxLevel").textContent = game.level.stat;
-        document.querySelector("#gameTotalLines").textContent = game.totalRowsCleared.stat;
-        showModal(document.querySelector("#gameOverModal"));
-    }
-
     // Creates each new tetroid, shifting the base template to the middle columns
     initialPos() {
         this.curOrientation = 0;
@@ -206,7 +195,7 @@ class Tetroid {
                 this.curPosTiles[index] = tilePos + shiftBy;
                 game.tileArr[tilePos + shiftBy].style.backgroundColor = this.color;
             })
-            this.gameOver();
+            gameOver();
         }
     }
     
@@ -411,6 +400,21 @@ function showModal(modalSelector) {
 // Hide modal
 function hideModal(modalSelector) {
     modalSelector.style.display = "none";
+}
+
+// Ends the game
+function gameOver() {
+    game.currentScore.setHighestScore();
+    clearInterval(game.gravity);
+    game.pauseFlag = true;
+    document.querySelector("#gameScore").textContent = game.currentScore.stat;
+    document.querySelector("#userHighScore").textContent = game.highestScore.stat;
+    document.querySelector("#gameMaxLevel").textContent = game.level.stat;
+    document.querySelector("#gameTotalLines").textContent = game.totalRowsCleared.stat;
+    game.tileArr.forEach((value, index) => {
+        game.tileArr[index].style.backgroundColor = 'black';
+    })
+    showModal(document.querySelector("#gameOverModal"));
 }
 
 // Set up listeners for key and button functionality
