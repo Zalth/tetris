@@ -36,7 +36,8 @@ const game = {
     instructionModalContent: '',
     buttonControlSelectors: [],
     gameOverContentSelector: '',
-    gameOverSelector: ''
+    gameOverSelector: '',
+    gameOver: true
 }
 
 // Class to hold information used in calculating the score
@@ -410,7 +411,7 @@ function showModal(modalSelector, modalCloseSelector, pause = false) {
 // Hide modal
 function hideModal(modalSelector, pause) {
     modalSelector.style.display = "none";
-    if (game.pauseFlag == true) {
+    if (game.pauseFlag == true && game.gameOver == false) {
         game.buttonControlSelectors.forEach(selector => {selector.disabled = false});
         //document.addEventListener('keydown', keyListeners)
         clearInterval(game.gravity);
@@ -421,6 +422,7 @@ function hideModal(modalSelector, pause) {
 
 // Ends the game
 function gameOver() {
+    game.gameOver = true;
     game.currentScore.setHighestScore();
     clearInterval(game.gravity);
     game.pauseFlag = true;
@@ -689,6 +691,7 @@ function playGame() {
 setupGame();
 
 function resetGame() {
+    game.gameOver = false;
     clearInterval(game.gravity);
     game.fallInterval.current = game.fallInterval.initial;
     for (let i = 0; i < game.tilesWide * game.tilesHigh; i++) {
