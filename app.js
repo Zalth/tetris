@@ -446,6 +446,15 @@ function gameOver() {
         game.tileArr[index].style.backgroundColor = 'black';
     })
     showModal(document.querySelector("#gameOverModal"),document.querySelector(".gameOverModalClose"));
+    game.fallInterval.current = game.fallInterval.initial;
+    for (let i = 0; i < game.tilesWide * game.tilesHigh; i++) {
+        game.tileArr[i].style.backgroundColor = 'black';
+    }
+    game.shapesGenerated = 1;
+    game.lineArr.forEach(item => {item.reset()});
+    game.level.update(0);
+    game.currentScore.reset();
+    game.shapeStatArr.forEach(item => {item.reset()});
 }
 
 // Logic for arrow and button to move left
