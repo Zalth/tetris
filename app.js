@@ -82,6 +82,9 @@ class Scores extends Stats {
     constructor(htmlId) {
         super(htmlId);
     }
+    updateHighScoreDisplay() {
+        game.scoreArr[1].displaySelector.textContent = game.highestScore.stat;
+    }
     setHighestScore() {
         if (game.currentScore.stat > game.highestScore.stat) {
             game.highestScore.stat = game.currentScore.stat;
@@ -118,12 +121,11 @@ class ShapeStats extends Stats {
         newDiv.style.height = '24px';
         for (let i = 0; i < 8; i++) {
             let gridTile = document.createElement('div');
-            gridTile.style.width = '8px';
-            gridTile.style.height = '8px';
+            gridTile.style.width = '9px';
+            gridTile.style.height = '9px';
             
             if (i == this.asideTemplate[0] || i == this.asideTemplate[1] || i == this.asideTemplate[2] || i == this.asideTemplate[3]) {
-                gridTile.style.backgroundColor = "white";
-                gridTile.style.border = "thin solid black";
+                gridTile.style.backgroundColor = "black";
             }
             newDiv.append(gridTile);
         }
@@ -293,6 +295,10 @@ function initializeStats() {
     
     game.scoreArr = [currentScore, highestScore];
     game.scoreArr.forEach(item => {item.initialize()});
+    if (localStorage.getItem("highScore") != null) {
+        game.highestScore.stat = localStorage.getItem("highScore");
+        game.highestScore.updateHighScoreDisplay();
+    }
 
     // Initialize all ShapeStats class objects
     const lineShapeStats = new ShapeStats('lineShape', [1, 3, 5, 7]);  
@@ -411,7 +417,7 @@ function showModal(modalSelector, modalCloseSelector, pause = false) {
 // Hide modal
 function hideModal(modalSelector, pause) {
     modalSelector.style.display = "none";
-    if (game.pauseFlag == true && game.gameOver == false) {
+    if (pause == true && game.gameOver == false) {
         game.buttonControlSelectors.forEach(selector => {selector.disabled = false});
         //document.addEventListener('keydown', keyListeners)
         clearInterval(game.gravity);
@@ -424,6 +430,7 @@ function hideModal(modalSelector, pause) {
 function gameOver() {
     game.gameOver = true;
     game.currentScore.setHighestScore();
+    localStorage.setItem("highScore", game.highestScore.stat)
     clearInterval(game.gravity);
     game.pauseFlag = true;
     document.querySelector("#gameScore").textContent = game.currentScore.stat;
@@ -691,6 +698,11 @@ function playGame() {
 setupGame();
 
 function resetGame() {
+    console.log(game.highestScore.stat)
+    if (localStorage.getItem("highScore") != null) {
+        game.highestScore.stat = localStorage.getItem("highScore");
+        game.highestScore.updateHighScoreDisplay();
+    }
     game.gameOver = false;
     clearInterval(game.gravity);
     game.fallInterval.current = game.fallInterval.initial;

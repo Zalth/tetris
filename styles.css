@@ -44,6 +44,7 @@ h4 {
     align-items: center;
     font-size: smaller;
     padding: 5px;
+
 }
 
 #shapeStats {
@@ -111,7 +112,7 @@ aside {
 }
 
 .linesText {
-    font-size: smaller;
+    font-size: 1em;
     margin: 2px;
     padding-right: 5px;
     width: 45px;
