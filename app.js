@@ -1,43 +1,43 @@
 // Set tile size and dimensions of the game area
 const game = {
-    tileDimension: 28,      //Tiles are 28 px wide initially
+    tileDimension: 0,       //Tiles size will be set dynamically
     tilesWide: 10,          //10 tiles per row
     tilesHigh: 15,          //15 rows
-    gridWidth: 0,           //Will update on setupGame(game)
-    gridHeight: 0,          //Will update on setupGame(game)
-    gridSelector: '',       //Will update on setupGame(game)
-    tileArr: [],            //Will update on setupGame(game)
-    shapeTemplates: [],     //Will store all tetroids and all orientations
-    curTemplateId: '',      //The tetroid currently falling   
-    fallInterval: {
-        initial: 800,
+    gridWidth: 0,           //Width of the game grid set dynamically
+    gridHeight: 0,          //Height of the game grid set dynamically
+    gridSelector: '',       //The selector for the game grid
+    tileArr: [],            //Holds selectors for each tile in the game grid
+    shapeTemplates: [],     //Holds all of the Shape class template objects
+    curTemplateId: '',      //The tetroid id of the currently falling shape
+    fallInterval: {         //Keeps track of the starting and current fall rate of the shape
+        initial: 800,       //How long it takes to drop tetroid 1 square in millisec
         current: 800
-    },     //How long it takes to drop tetroid 1 square in millisec
+    },     
     filledSqInRow: [],       //Keeps track of how many squares are filled in each row
-    scoreArr: [],
-    lineArr: [],
-    shapeStatArr: [],
-    gravity: '',
-    shapesGenerated: 1,
-    currentScore: '',
-    highestScore: '',
-    oneRowCleared: '',
-    twoRowsCleared: '',
-    threeRowsCleared: '',
-    fourRowsCleared: '',
-    totalRowsCleared: '',
-    level: '',
-    pauseFlag: true,
-    isScreenSmaller: false,
-    gameControlSelectors: [],
-    modalSelector: '',
-    modalContentSelector: '',
-    instructionModalSelector: '',
-    instructionModalContent: '',
-    buttonControlSelectors: [],
-    gameOverContentSelector: '',
-    gameOverSelector: '',
-    gameOver: true
+    scoreArr: [],            //Holds the Score class objects    
+    lineArr: [],             //Holds the Line class objects
+    shapeStatArr: [],        //Holds the Stats for Shapes class objects
+    gravity: '',             //Holds setInterval
+    shapesGenerated: 1,      //Keeps track of the number of shapes generated
+    currentScore: '',        //Current score class object
+    highestScore: '',        //Highest score class object
+    oneRowCleared: '',       //One row cleared class object
+    twoRowsCleared: '',      //two rows cleared class object
+    threeRowsCleared: '',    //three rows cleared class object
+    fourRowsCleared: '',     //four rows cleared class object
+    totalRowsCleared: '',    //total rows cleared class object
+    level: '',               //level class object
+    pauseFlag: true,         //Keeps track of whether the game is paused or not
+    isScreenSmaller: false,  //Flag to determine if the small screen breakpoint was reached
+    gameControlSelectors: [],//Holds the selectors for all game button controls
+    modalSelector: '',       //Selector for the pause modal
+    modalContentSelector: '',       //Selector for the content in the pause modal
+    instructionModalSelector: '',   //Selector for the instructions modal
+    instructionModalContent: '',    //Selector for the content in the instructions modal
+    buttonControlSelectors: [],     //Selectors for the buttons in the Heading section
+    gameOverContentSelector: '',    //Selector for the content in the game over modal
+    gameOverSelector: '',           //Selector for the game over modal
+    gameOver: true                  //Flag showing whether the game was over or had started
 }
 
 // Class to hold information used in calculating the score
@@ -295,6 +295,7 @@ function initializeStats() {
     
     game.scoreArr = [currentScore, highestScore];
     game.scoreArr.forEach(item => {item.initialize()});
+    // Use the highest score stored in local storage, if there is one
     if (localStorage.getItem("highScore") != null) {
         game.highestScore.stat = localStorage.getItem("highScore");
         game.highestScore.updateHighScoreDisplay();
@@ -365,6 +366,7 @@ function initializePlayArea() {
             game.instructionModalSelector.style.height = game.gridHeight;
         }
         
+        //Checks to determine best tileDimension
         let checkTileHeight = adjustTileWidth * 15 + 150;
         if (checkTileHeight < screenHeight) {
             game.tileDimension = adjustTileWidth;
@@ -396,10 +398,12 @@ function initializePlayArea() {
         game.tileArr.push(gridTile);
     }
 
+    // Sets a counter for each row's filled in tiles to 0
     for(let i = 0; i < game.tilesHigh; i++) {
         game.filledSqInRow[i] = 0;
     }
 
+    // Adjust the tile size if the game window size is adjusted
     window.addEventListener('resize', () => {
         adjustTileSize();
         let gridTiles = document.querySelectorAll('.gridTile');
