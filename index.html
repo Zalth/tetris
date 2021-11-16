@@ -44,18 +44,18 @@
         <button id="moveRight" class="oval"><i class="fas fa-arrow-right"></i></button>
     </aside>
     <div id="pauseModal" class="modal">
-        <div class="modal-content">
+        <div class="pauseModalContent modal-content">
             <div class="modalHeader">
                 <h1>Paused</h1>
-                <span class="pauseModalClose">&times;</span>
+                <span class="pauseModalClose close">&times;</span>
             </div>
         </div>
     </div>
     <div id="instructionModal" class="modal">
-        <div class="instructionModalContent">
+        <div class="instructionModalContent modal-content">
             <div class="modalHeader">
                 <h1>About the game</h1>
-                <span class="instructionModalClose">&times;</span>
+                <span class="instructionModalClose close">&times;</span>
             </div>
             <h4>Rotating the shapes clockwise or counterclockwise:</h4>
             <p>
@@ -85,15 +85,15 @@
         </div>
     </div>
     <div id="gameOverModal" class="modal">
-        <div class="gameOverModalContent">
+        <div class="gameOverModalContent modal-content">
             <div class="modalHeader">
                 <h1>Game Over</h1>
-                <span class="gameOverModalClose">&times;</span>
+                <span class="gameOverModalClose close">&times;</span>
             </div>
-            <div>Your score: <span id="gameScore"></span></div>
-            <div>The current high score: <span id="userHighScore"></span></div>
-            <div>Your level: <span id="gameMaxLevel"></span></div>
-            <div>Your total lines cleared: <span id="gameTotalLines"></span></div>
+            <div class="gameOverText">Your score: <span id="gameScore"></span></div>
+            <div class="gameOverText">The current high score: <span id="userHighScore"></span></div>
+            <div class="gameOverText">Your level: <span id="gameMaxLevel"></span></div>
+            <div class="gameOverText">Your total lines cleared: <span id="gameTotalLines"></span></div>
         </div>
     </div>
 </body>

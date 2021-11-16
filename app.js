@@ -330,7 +330,7 @@ function intializeTetroids() {
 // Instantiate play area
 function initializePlayArea() {
     game.modalSelector = document.querySelector("#pauseModal");
-    game.modalContentSelector = document.querySelector(".modal-content");
+    game.modalContentSelector = document.querySelector(".pauseModalContent");
     game.instructionModalSelector = document.querySelector("#instructionModal");
     game.instructionModalContent = document.querySelector(".instructionModalContent");
     game.gameOverSelector = document.querySelector("#gameOverModal");
@@ -352,6 +352,7 @@ function initializePlayArea() {
             shapeStats.style.paddingBottom = "5px";
             shapeStats.style.marginBottom = "5px"
             adjustTileWidth = (screenWidth - 175) / game.tilesWide;
+            game.modalSelector.style.paddingTop = "150px";
         }
         else {
             game.isScreenSmaller = false;
@@ -359,6 +360,9 @@ function initializePlayArea() {
             shapeStats.style.borderRight = "black 1px solid";
             shapeStats.style.borderBottom = "none";
             adjustTileWidth = (screenWidth - 175) / game.tilesWide;
+            game.modalSelector.style.paddingTop = "100px";
+            game.modalSelector.style.height = game.gridWidth;
+            game.instructionModalSelector.style.height = game.gridHeight;
         }
         
         let checkTileHeight = adjustTileWidth * 15 + 150;
@@ -374,7 +378,9 @@ function initializePlayArea() {
         game.gridHeight = (game.tilesHigh * game.tileDimension + 2 * game.tilesHigh) + 'px';
         game.gridSelector.style.width = game.gridWidth;
         game.gridSelector.style.height = game.gridHeight;
-        game.modalContentSelector.style.height = game.gridHeight;
+        game.modalSelector.style.height = game.gridWidth;
+        game.instructionModalSelector.style.height = game.gridHeight;
+        game.modalSelector.style.paddingLeft = (screenWidth - game.tilesWide * game.tileDimension + 2 * game.tilesWide) / 2
     }
     
     adjustTileSize();
@@ -419,7 +425,6 @@ function hideModal(modalSelector, pause) {
     modalSelector.style.display = "none";
     if (pause == true && game.gameOver == false) {
         game.buttonControlSelectors.forEach(selector => {selector.disabled = false});
-        //document.addEventListener('keydown', keyListeners)
         clearInterval(game.gravity);
         game.gravity = setInterval(playGame, game.fallInterval.current);
         game.pauseFlag = false;
@@ -582,7 +587,7 @@ function initializeHeaderButtons () {
         if (game.pauseFlag) {
             playPauseButton.blur();
             game.buttonControlSelectors.forEach(selector => {selector.disabled = false});
-            document.addEventListener('keydown', keyListeners)
+            //document.addEventListener('keydown', keyListeners)
             clearInterval(game.gravity);
             game.gravity = setInterval(playGame, game.fallInterval.current);
             game.pauseFlag = false;
@@ -590,7 +595,7 @@ function initializeHeaderButtons () {
         else {
             clearInterval(game.gravity);
             game.buttonControlSelectors.forEach(selector => {selector.disabled = true});
-            document.removeEventListener('keydown', keyListeners)
+            //document.removeEventListener('keydown', keyListeners)
             game.pauseFlag = true;
             showModal(game.modalSelector, document.querySelector(".pauseModalClose"), true);
         }
@@ -698,7 +703,6 @@ function playGame() {
 setupGame();
 
 function resetGame() {
-    console.log(game.highestScore.stat)
     if (localStorage.getItem("highScore") != null) {
         game.highestScore.stat = localStorage.getItem("highScore");
         game.highestScore.updateHighScoreDisplay();
