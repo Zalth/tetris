@@ -1,5 +1,9 @@
 # Tetris
-This game was created as a web game app for a coding bootcamp. My wife and I were young children in the 1980's and have fond memories of Tetris. 
+My wife and I were young children in the 1980's and have fond memories of Tetris. When I needed to create a project for my class, my wife suggested that I make Tetris. 
+
+**Video Overview of the Project:** ![CS50x Final Project - Tetris] (https://www.youtube.com/watch?v=fLQtxcprqZQ)
+
+**Project Deployed Using ![GitHub Pages] (https://jacoleman1978.github.io/tetris/)**
 
 **Devices that can be used**
 
