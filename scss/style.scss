@@ -1,0 +1,161 @@
+@import "banners";
+@import "config";
+@import "flex";
+@import "grid";
+
+body {
+    @include flex(row, space-between, center, wrap);
+    background-color: $background-color;
+    gap: 5px;
+}
+
+header {
+    width: 100%;
+}
+
+button {
+    border-radius: 5px;
+}
+
+p {
+    margin-block-start: 0px;
+    font-size: medium;
+}
+
+h4 {
+    margin-block-end: 5px;
+}
+
+.buttons {
+    @include flex(row, space-around, center, nowrap);
+}
+
+.scoreBanner {
+    @include banner(space-around);
+}
+
+.statsBanner {
+    @include banner(center);
+}
+
+#shapeStats {
+    display: flex;
+    border-right: 1px solid black;
+}
+
+#lineStats {
+    @include flex(row, space-evenly, center, nowrap);
+    padding-left: 10px;
+}
+
+.gameArea {
+    @include flex(row, start, start, nowrap);
+}
+
+#gameGrid {
+    @include grid(15, 1fr, 10, 1fr);
+    background-color: $grid-line-color;
+    display: inline-grid;
+    gap: 1px;
+}
+
+aside {
+    @include flex(column, space-evenly, center, nowrap);
+    padding: 5px;
+}
+
+.headerShapes {
+    @include grid(2, 10px, 4, 10px);
+    grid-auto-flow: column;
+}
+
+#shapeStats span {
+    @include flex(row, space-evenly, center, nowrap);
+}
+
+#lineStats span {
+    @include flex(row, space-evenly, center, nowrap);
+}
+
+.oval {
+    background-color: $touch-btn-bg-color;
+    color: $touch-btn-color;
+    padding: 25px 15px;
+    border-radius: 50%;
+    border: 2px solid black;
+    margin: 50px 0px;
+}
+
+.linesText {
+    @include flex(column, center, center, nowrap);
+    font-size: 1em;
+    margin: 2px;
+    padding-right: 5px;
+    width: 45px;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1;
+    width: 80%;
+    height: 100%;
+    padding-bottom: 65px;
+    padding-top: 100px;
+    padding-left: 10%;
+    padding-right: 10%;
+    left: 0;
+    top: 0;
+   
+    background-color: $modal-bg-color-alt;
+    background-color: $modal-bg-color;
+}
+
+#gameOverModal {
+    width: 70%;
+    height: 100%;
+    padding-left: 15%;
+    padding-right: 15%;
+    padding-top: 50%;
+    background-color: $game-over-modal-bg-color;
+}
+
+.modalHeader {
+    @include flex(row, space-between center, nowrap);
+    border-bottom: 1px solid black;
+}
+
+.modal-content {
+    background-color: $modal-content-bg-color;
+    padding-left: 15px;
+    padding-right: 15px;
+    padding-bottom: 10px;
+    border-radius: 3%;
+}
+
+.image {
+    @include flex(row, center, center, nowrap);
+}
+
+img {
+    width: 300px;
+    height: 300px;
+    margin-top: 10%;
+}
+
+.close {
+    &:hover, &:focus {
+        color: $close-btn-hover;
+        text-decoration: none;
+        cursor: pointer;
+    }
+    color: $close-btn-color;
+    float: right;
+    font-size: x-large;
+    font-weight: bold;
+}
+
+.gameOverText {
+    margin-bottom: 10px;
+    color: $game-over-text-color;
+}

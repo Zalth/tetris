@@ -1,0 +1,7 @@
+@import "flex";
+
+@mixin banner($justify) {
+    @include flex(row, $justify, center, nowrap);
+    font-size: smaller;
+    padding: 5px;
+}
